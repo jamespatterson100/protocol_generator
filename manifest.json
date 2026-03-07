@@ -15,9 +15,10 @@
       "purpose": "any maskable"
     }
   ],
-  "start_url": "YOUR_GAS_URL",
+  "start_url": "https://script.google.com/macros/s/AKfycbyMtqbOZZLs8dzDQxzVL_IBaBTpUlqJ93-52atUAAPMZOFqR0pezdudZpfqMJo2I-jv2w/exec",
   "background_color": "#f8fafc",
   "display": "standalone",
   "scope": "/",
   "theme_color": "#0f172a"
+
 }
