@@ -3,7 +3,7 @@
   "name": "HerdLink: Abbotsford Vet",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "android-chrome-192x192.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "any"
@@ -21,3 +21,4 @@
   "scope": "/", 
   "theme_color": "#0f172a"
 }
+
