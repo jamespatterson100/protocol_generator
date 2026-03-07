@@ -18,8 +18,9 @@
   "start_url": "https://script.google.com/macros/s/AKfycbwBa-kXzsZeog9CMGQaO47d5R66yX7nxCK9yS0jPlMeLPiw_pghDSpplr0y3s4TpjRSHg/exec",
   "background_color": "#f8fafc",
   "display": "standalone",
-  "scope": "/", 
+  "scope": "https://script.google.com/macros/s/AKfycbwBa-kXzsZeog9CMGQaO47d5R66yX7nxCK9yS0jPlMeLPiw_pghDSpplr0y3s4TpjRSHg/", 
   "theme_color": "#0f172a"
 }
+
 
 
