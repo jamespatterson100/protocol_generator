@@ -15,11 +15,12 @@
       "purpose": "any"
     }
   ],
-  "start_url": "https://script.google.com/macros/s/AKfycbwBa-kXzsZeog9CMGQaO47d5R66yX7nxCK9yS0jPlMeLPiw_pghDSpplr0y3s4TpjRSHg/exec",
+  "start_url": "https://script.google.com/macros/s/AKfycbxkt-Zm1uKSPE8_Wk-Z3FJd4ucfRg-xQ704kgAmoN6wUzBO5-sJOXv9KHAL2f43GcrDnw/exec",
   "background_color": "#f8fafc",
   "display": "standalone", 
   "theme_color": "#0f172a"
 }
+
 
 
 
