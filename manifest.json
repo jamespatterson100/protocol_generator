@@ -1,25 +1,23 @@
 {
-  "short_name": "Protocol Builder",
-  "name": "HerdLink: Abbotsford Veterinary Clinic",
+  "short_name": "HerdLink",
+  "name": "HerdLink: Abbotsford Vet",
   "icons": [
     {
       "src": "icon-192.png",
       "type": "image/png",
       "sizes": "192x192",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "icon-512.png",
       "type": "image/png",
       "sizes": "512x512",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ],
-  "start_url": "https://script.google.com/macros/s/AKfycbyMtqbOZZLs8dzDQxzVL_IBaBTpUlqJ93-52atUAAPMZOFqR0pezdudZpfqMJo2I-jv2w/exec",
+  "start_url": "https://script.google.com/macros/s/AKfycbwBa-kXzsZeog9CMGQaO47d5R66yX7nxCK9yS0jPlMeLPiw_pghDSpplr0y3s4TpjRSHg/exec",
   "background_color": "#f8fafc",
   "display": "standalone",
-  "scope": "https://jamespatterson100.github.io/protocol_generator/",
+  "scope": "/", 
   "theme_color": "#0f172a"
-
 }
-
