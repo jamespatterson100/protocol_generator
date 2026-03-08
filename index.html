@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0f172a">
+
+  <link rel="manifest" href="/protocol_generator/manifest.json">
+
+  <link rel="apple-touch-icon" href="https://jamespatterson100.github.io/protocol_generator/android-chrome-192x192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="https://jamespatterson100.github.io/protocol_generator/android-chrome-192x192.png">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.5/cdn.min.js"></script>
+  <style>
+    [x-cloak] { display: none !important; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+    body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+    [x-cloak] { display: none !important; }
+
+    /* MOBILE-FIRST CARD TRANSFORMATION */
+    @media (max-width: 768px) {
+      .responsive-table, .responsive-table thead, .responsive-table tbody, .responsive-table th, .responsive-table td, .responsive-table tr { 
+        display: block !important; 
+        width: 100% !important;
+      }
+      .responsive-table thead { display: none !important; }
+      .responsive-row {
+        background: #f8fafc;
+        margin-bottom: 1rem;
+        padding: 1.25rem;
+        border-radius: 1.25rem;
+        border: 1px solid #e2e8f0;
+      }
+      .med-amount-mobile {
+        font-size: 1.5rem !important;
+        font-weight: 900;
+        color: #1e3a8a;
+        display: block;
+        margin-top: 0.25rem;
+      }
+    }
+
+    /* PRINT ENGINE */
+@media print {
+  /* Set standard paper size and 0.5-inch margins (also hides browser URLs/Dates) */
+  @page { 
+    size: letter; 
+    margin: 0.5in; 
+  }
+  
+  html, body { 
+    height: auto !important; 
+    overflow: visible !important; 
+    background: white !important; 
+  }
+  
+  /* Hide all UI elements that shouldn't be on the paper */
+  .no-print, nav, button, .selector-card, .script-application-footer, .no-print-section { 
+    display: none !important; 
+  }
+  
+  /* * THE PRINT AREA 
+   * - display: flex allows the signature block to be pushed to the bottom.
+   * - height: calc(100vh - 1in) perfectly fills the 11-inch page minus the margins.
+   * - transform: none resets the mobile UI scaling so it prints natively.
+   */
+  #print-area { 
+    display: flex !important; 
+    flex-direction: column !important;
+    height: calc(100vh - 1in) !important;
+    min-height: 100% !important;
+    position: static !important; 
+    visibility: visible !important; 
+    width: 100% !important; 
+    border: none !important; 
+    box-shadow: none !important; 
+    padding: 0 !important; 
+    transform: none !important; 
+  }
+  
+  /* Typography overrides */
+  h1 { font-size: 28pt !important; font-weight: 900 !important; color: black !important; }
+  h2 { font-size: 24pt !important; font-weight: 900 !important; color: black !important; }
+  .med-amount { font-size: 18pt !important; font-weight: 900 !important; color: #1e3a8a !important; } 
+  .wd-number { font-size: 38pt !important; font-weight: 900 !important; color: #dc2626 !important; } 
+  
+  /* Sizing for standard text (Removed color: black!important to preserve your colored UI accents) */
+  p, td, th, span { font-size: 10pt !important; }
+  
+  /* Force exact background colors (Withdrawal boxes, Table headers) */
+  * { 
+    -webkit-print-color-adjust: exact !important; 
+    print-color-adjust: exact !important; 
+  }
+}
+  </style>
+</head>
+<body class="bg-slate-50 p-2 md:p-8 pb-24 md:pb-8" x-data="protocolApp()" x-init="init()" x-cloak>
+<div x-show="showInstallPrompt" class="fixed bottom-6 left-4 right-4 z-[300] no-print">
+    <div class="bg-slate-900/95 backdrop-blur-lg border border-slate-700 p-5 rounded-3xl shadow-2xl">
+        <div class="flex items-start gap-4 mb-4">
+            <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shrink-0">
+                <img :src="LOGO_BASE64" class="w-10 h-10 object-contain p-1">
+            </div>
+            <div class="flex-1">
+                <h3 class="text-white font-black text-sm uppercase tracking-wide">Install HerdLink</h3>
+                <p class="text-slate-400 text-xs mt-1">Faster access and full-screen mode for the barn.</p>
+            </div>
+        </div>
+
+        <button @click="installApp()" 
+                class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-3 rounded-xl uppercase text-xs tracking-widest transition shadow-lg">
+            Install App Now
+        </button>
+    </div>
+</div>
+  <div x-show="syncStatus === 'syncing'" class="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-slate-900/60 backdrop-blur-md" x-transition>
+    <div class="relative w-16 h-16 mb-6">
+      <div class="absolute inset-0 border-4 border-blue-500/20 rounded-full"></div>
+      <div class="absolute inset-0 border-4 border-t-blue-500 rounded-full animate-spin"></div>
+    </div>
+    <div class="text-center">
+      <h3 class="text-white font-black uppercase tracking-widest text-xs">Syncing Database</h3>
+      <p class="text-blue-300/80 text-[10px] font-bold uppercase animate-pulse">Abbotsford Veterinary Clinic...</p>
+    </div>
+  </div>
+  <div 
+  x-show="view === 'login'" 
+  x-transition.opacity.duration.500ms
+  class="fixed inset-0 z-[100] bg-slate-100 flex flex-col items-center justify-center p-6"
+  style="display: none;"
+>
+  <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
+    <div class="bg-slate-900 p-8 text-center">
+      <div class="h-12 flex items-center justify-center mb-4">
+        <img :src="LOGO_BASE64" class="max-h-full" x-show="LOGO_BASE64">
+        <h1 x-show="!LOGO_BASE64" class="text-white font-black text-2xl tracking-tighter uppercase">HerdLink</h1>
+      </div>
+      <p class="text-slate-400 text-xs font-bold uppercase tracking-widest">Secure Clinical Portal</p>
+    </div>
+
+    <div class="p-8 flex flex-col gap-6">
+      <div class="text-center">
+        <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">Clinic Authorization</h2>
+        <p class="text-slate-500 text-sm mt-1">Please identify yourself to access protocols.</p>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Veterinarian Name</label>
+        <input 
+          type="text" 
+          x-model="loginName" 
+          placeholder="e.g. Dr. Natasha"
+          class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-slate-900 focus:outline-none font-bold text-slate-900 transition"
+        >
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Clinic Security PIN</label>
+        <input 
+          type="password" 
+          inputmode="numeric"
+          x-model="loginPin" 
+          placeholder="••••••••"
+          @keyup.enter="login()"
+          class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-slate-900 focus:outline-none font-bold text-slate-900 tracking-[0.5em] transition"
+        >
+      </div>
+
+      <button 
+        @click="login()"
+        :disabled="!loginPin || syncStatus === 'syncing'"
+        class="w-full bg-slate-900 disabled:bg-slate-300 text-white font-black py-5 rounded-2xl uppercase tracking-widest shadow-lg active:scale-95 transition flex items-center justify-center gap-3"
+      >
+        <template x-if="syncStatus === 'syncing'">
+          <svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </template>
+        <span x-text="syncStatus === 'syncing' ? 'Authorizing...' : 'Enter Clinic Vault'"></span>
+      </button>
+
+      <p class="text-[10px] text-slate-400 text-center uppercase font-bold leading-relaxed px-4">
+        Access is logged and restricted to authorized personnel of the veterinary practice.
+      </p>
+    </div>
+  </div>
+  
+  <p class="mt-8 text-slate-400 text-[10px] font-bold uppercase tracking-widest">
+    Powered by HerdLink API v3.1
+  </p>
+</div>
+<div x-show="view !== 'login'" x-cloak>
+
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around items-center z-[150] no-print pb-safe shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+    <button @click="view = 'gen'; haptics.success();" :class="view === 'gen' ? 'text-blue-600' : 'text-slate-400'" class="flex flex-col items-center gap-1 py-3 flex-1 transition touch-manipulation">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+      <span class="text-[9px] font-black uppercase">Gen</span>
+    </button>
+    <button @click="view = 'admin'; haptics.success();" :class="view === 'admin' ? 'text-blue-600' : 'text-slate-400'" class="flex flex-col items-center gap-1 py-3 flex-1 transition touch-manipulation">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37a1.724 1.724 0 002.572-1.065z"></path></svg>
+      <span class="text-[9px] font-black uppercase">Admin</span>
+    </button>
+  </nav>
+
+  <nav class="max-w-6xl mx-auto mb-6 no-print bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4 px-8 md:px-4">
+    <div class="flex items-center justify-center md:justify-start gap-6 w-full md:w-auto">
+        
+        <div x-data="{ logoFailed: false }" class="flex items-center shrink-0">
+            <img :src="LOGO_BASE64 && LOGO_BASE64.startsWith('data:image') ? LOGO_BASE64 : 'data:image/png;base64,' + LOGO_BASE64" 
+                 class="h-10 w-auto object-contain shrink-0" 
+                 x-show="LOGO_BASE64 && !logoFailed" 
+                 @error="logoFailed = true">
+            <span x-show="!LOGO_BASE64 || logoFailed" class="text-[10px] font-black uppercase tracking-tighter text-slate-900 leading-tight">Abbotsford Veterinary Clinic</span>
+        </div>
+        
+        <div class="flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase border transition-all shrink-0"
+             :class="syncStatus === 'connected' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-amber-50 text-amber-600 border-amber-200 animate-pulse'">
+            <span class="w-2 h-2 rounded-full" :class="{
+            'bg-blue-500': syncStatus === 'syncing',
+            'bg-emerald-500': syncStatus === 'connected',
+            'bg-amber-500': syncStatus === 'offline-cached',
+            'bg-red-500': syncStatus === 'error'
+          }"></span>
+            <span x-text="syncStatus"></span>
+        </div>
+    </div>
+    
+    <div class="hidden md:flex bg-slate-100 p-1 rounded-xl shrink-0">
+        <button @click="view = 'gen'" :class="view === 'gen' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500'" class="px-6 py-2 rounded-lg font-bold text-sm transition">Generator</button>
+        <button @click="view = 'admin'" :class="view === 'admin' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500'" class="px-6 py-2 rounded-lg font-bold text-sm transition">Admin Dashboard</button>
+    </div>
+
+  </nav>
+
+<div x-show="view === 'gen'" class="max-w-6xl mx-auto space-y-6" x-transition>
+    <div class="bg-white p-6 md:p-8 rounded-2xl shadow-xl border border-slate-200 selector-card no-print">
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+        <div>
+          <label class="text-[10px] font-black text-slate-400 uppercase">Production Type</label>
+          <select x-model="productionType" @change="results = null" class="w-full border-2 p-3 rounded-xl bg-slate-50 font-bold focus:border-blue-500 outline-none transition">
+            <option value="" disabled selected>Select...</option>
+            <template x-for="type in productionTypes"><option :value="type" x-text="type"></option></template>
+          </select>
+        </div>
+        <div><label class="text-[10px] font-black text-slate-400 uppercase">Farm</label><select x-model="f" @change="updateGroups()" class="w-full border-2 p-3 rounded-xl font-bold bg-slate-50"><option value="">Select Farm...</option><template x-for="farm in farms"><option :value="farm" x-text="farm"></option></template></select></div>
+        <div><label class="text-[10px] font-black text-slate-400 uppercase">Group</label><select x-model="g" :disabled="!f" @change="updateDiseases()" class="w-full border-2 p-3 rounded-xl font-bold bg-slate-50"><option value="">Select...</option><template x-for="group in filteredGroups"><option :value="group" x-text="group"></option></template></select></div>
+        <div><label class="text-[10px] font-black text-slate-400 uppercase">Condition</label><select x-model="d" :disabled="!g" @change="updateSeverities()" class="w-full border-2 p-3 rounded-xl font-bold bg-slate-50"><option value="">Select...</option><template x-for="dis in filteredDiseases"><option :value="dis" x-text="dis"></option></template></select></div>
+        <div><label class="text-[10px] font-black text-slate-400 uppercase">Protocol</label><select x-model="s" :disabled="!d" class="w-full border-2 p-3 rounded-xl font-bold bg-slate-50"><option value="">Select...</option><template x-for="sev in filteredSeverities"><option :value="sev" x-text="sev"></option></template></select></div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-xl border border-slate-200 mb-6">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-black text-slate-500 uppercase">Dose Mode</span>
+          <div class="flex bg-white p-1 rounded-lg border">
+            <button @click="doseType = 'animal'" :class="doseType === 'animal' ? 'bg-slate-900 text-white' : 'text-slate-400'" class="px-4 py-1 rounded-md text-[10px] font-bold uppercase transition">Animal</button>
+            <button @click="doseType = 'weight'" :class="doseType === 'weight' ? 'bg-slate-900 text-white' : 'text-slate-400'" class="px-4 py-1 rounded-md text-[10px] font-bold uppercase transition">Fixed</button>
+          </div>
+        </div>
+        <div class="flex items-center gap-4">
+          <div class="flex-1" x-show="doseType === 'animal'" x-transition>
+            <input type="number" x-model.number="weight" placeholder="Animal Weight" class="w-full border-2 p-2 rounded-lg text-sm font-bold bg-white outline-none focus:border-blue-500" inputmode="decimal">
+          </div>
+          <div class="flex bg-white p-1 rounded-lg border ml-auto">
+            <button @click="unitSystem = 'kgs'" :class="unitSystem === 'kgs' ? 'bg-blue-600 text-white' : 'text-slate-400'" class="px-3 py-1 rounded-md text-[10px] font-bold uppercase transition">KGS</button>
+            <button @click="unitSystem = 'lbs'" :class="unitSystem === 'lbs' ? 'bg-blue-600 text-white' : 'text-slate-400'" class="px-3 py-1 rounded-md text-[10px] font-bold uppercase transition">LBS</button>
+          </div>
+        </div>
+      </div>
+
+      <button @click="generate()" 
+              :disabled="!productionType || !s || (doseType === 'animal' && !weight)" 
+              class="w-full bg-slate-900 text-white font-black py-4 rounded-xl uppercase tracking-widest disabled:opacity-20 transition-all shadow-lg active:scale-[0.97] touch-manipulation">
+        Generate Bilingual Sheet
+      </button>
+    </div>
+
+    <template x-if="results">
+  <div class="flex flex-col gap-4">
+    
+    <div 
+      x-data="{ scale: 1, docHeight: 1000 }"
+      x-init="
+        const updateScale = () => {
+          if (!$refs.wrapper || !$refs.paper) return;
+          // Calculate scale based on an 816px standard document width
+          scale = Math.min(1, $refs.wrapper.clientWidth / 816);
+          docHeight = $refs.paper.offsetHeight;
+        };
+        setTimeout(updateScale, 50);
+        window.addEventListener('resize', updateScale);
+        $watch('results', () => setTimeout(updateScale, 50));
+      "
+      x-ref="wrapper"
+      class="w-full overflow-hidden rounded-xl border border-slate-300 bg-slate-100 print:overflow-visible print:border-none print:bg-white"
+      :style="`height: ${scale * docHeight}px;`"
+    >
+      
+      <div 
+        x-ref="paper"
+        id="print-area" 
+        class="origin-top-left bg-white text-slate-900 flex flex-col p-8 shadow-sm [color-adjust:exact] [-webkit-print-color-adjust:exact] print:shadow-none print:transform-none print:w-full"
+        style="width: 816px;"
+        :style="`transform: scale(${scale});`"
+      >
+        
+        <div class="flex flex-row justify-between items-start border-b-2 border-slate-900 pb-4 mb-6 gap-4">
+          
+          <div class="flex flex-col gap-4 flex-1 min-w-0 pr-4">
+            <div class="h-10 flex items-center justify-start min-w-max">
+              <img :src="LOGO_BASE64" class="max-h-full object-contain object-left" x-show="LOGO_BASE64">
+            </div>
+            
+            <div class="flex items-center gap-4 flex-wrap">
+              <h2 class="text-4xl font-black uppercase leading-none tracking-tighter text-slate-900 break-words whitespace-normal" x-text="d"></h2>
+              <div class="flex flex-col justify-center border-l-2 border-slate-200 pl-4 leading-tight shrink-0">
+                <p class="text-[11px] font-bold text-slate-500 uppercase tracking-tight" x-text="s"></p>
+                <p x-show="doseType === 'animal'" class="text-[10px] font-black text-blue-600 uppercase mt-0.5" x-text="'FOR: ' + weight + ' ' + unitSystem.toUpperCase()"></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-right flex-1 min-w-0 pl-4">
+            <h1 class="text-3xl font-black uppercase leading-none text-slate-500 break-words whitespace-normal" x-text="f"></h1>
+            <p class="text-sm font-black uppercase text-slate-500 mt-1.5 leading-none break-words whitespace-normal" x-text="g"></p>
+            <p class="text-[10px] font-bold text-slate-400 uppercase mt-2" x-text="'Issued: ' + new Date().toLocaleDateString()"></p>
+          </div>
+        </div>
+
+        <div class="mb-4 p-4 bg-slate-50 border border-slate-200 rounded-xl text-left">
+          <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Identification / Clinical Signs</span>
+          <p class="text-slate-900 font-black text-lg leading-tight" x-text="results['desc_' + outputLang]"></p>
+          <p x-show="outputLang !== 'EN'" class="text-slate-500 italic text-[10pt] border-t border-slate-200 mt-2 pt-2">
+            <span class="font-bold uppercase text-[8px] mr-1 text-slate-400">EN Reference:</span><span x-text="results.desc_EN"></span>
+          </p>
+        </div>
+
+        <table class="w-full mb-6 border-collapse">
+          <thead class="bg-slate-900 text-white text-[8px] uppercase font-black text-left">
+            <tr>
+              <th class="p-2 pl-3">Medication</th>
+              <th class="p-2" x-text="dictionary[outputLang].volume"></th>
+              <th class="p-2">Route</th>
+              <th class="p-2">Freq</th>
+              <th class="p-2 text-right pr-3">Duration</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-for="t in results.treatments">
+              <tr class="border-b border-slate-100">
+                <td class="p-2 pl-3 text-sm font-black" x-text="t.drug"></td>
+                <td class="p-2 text-xl font-black text-blue-900" x-text="t.displayAmount"></td>
+                <td class="p-2 text-sm font-bold uppercase" x-text="t.route || 'N/A'"></td>
+                <td class="p-2 text-sm font-bold" x-text="t.freq"></td>
+                <td class="p-2 text-sm font-black text-right pr-3" x-text="t.dur + ' ' + dictionary[outputLang].days"></td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+
+        <div class="mt-auto">
+          <div class="bg-red-50 border-2 border-red-600 p-4 rounded-xl mb-6">
+            <h3 class="text-xs font-black text-red-700 text-center uppercase mb-3 tracking-widest" x-text="dictionary[outputLang].withdrawalHeader"></h3>
+            <div class="grid gap-4" :class="showMilkWD() ? 'grid-cols-2' : 'grid-cols-1'">
+              <div class="flex items-center justify-between bg-white px-4 py-2 border border-red-200 rounded-lg shadow-sm">
+                <div class="text-left"><label class="block text-[8px] font-black text-red-900 uppercase" x-text="dictionary[outputLang].meat"></label><p class="text-[9px] font-bold text-red-400 uppercase" x-text="dictionary[outputLang].days"></p></div>
+                <p class="text-4xl font-black text-red-600" x-text="results.meatMax"></p>
+              </div>
+              <div x-show="showMilkWD()" class="flex items-center justify-between bg-white px-4 py-2 border border-red-200 rounded-lg shadow-sm">
+                <div class="text-left"><label class="block text-[8px] font-black text-red-900 uppercase" x-text="dictionary[outputLang].milk"></label><p class="text-[9px] font-bold text-red-400 uppercase" x-text="dictionary[outputLang].days"></p></div>
+                <p class="text-4xl font-black text-red-600" x-text="results.milkMax"></p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="flex justify-between border-t border-slate-200 pt-4 mb-4">
+            <div class="w-1/3 border-b border-slate-400 pb-1 text-[8px] font-black text-slate-400 uppercase">Prescribing Veterinarian</div>
+            <div class="w-1/3 border-b border-slate-400 pb-1 text-[8px] font-black text-slate-400 uppercase">Farm Manager / Caretaker</div>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+
+    <button @click="window.focus(); window.print();" class="no-print w-full bg-slate-900 text-white font-black py-4 rounded-xl uppercase tracking-widest shadow-xl active:scale-95 transition">
+      Authorize & Print Record
+    </button>
+    
+  </div>
+</template>
+</div>
+
+  <div x-show="view === 'admin'" class="max-w-6xl mx-auto space-y-8 no-print p-2 md:p-0" x-transition>
+    
+    <div class="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-200">
+      <h3 class="font-black mb-6 uppercase text-slate-400 text-xs tracking-widest text-center border-b pb-4">Infrastructure Management</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+        
+        <div class="space-y-4" x-data="{ open: false }">
+          <label class="text-[10px] font-black uppercase text-slate-400 block">Select or Create Farm</label>
+          <div class="relative">
+            <input type="text" x-model="adm.farm" @input="open = true" @click.away="open = false" placeholder="Search farm..." class="w-full border-2 border-slate-100 p-4 rounded-xl text-lg font-bold outline-none bg-slate-50 focus:bg-white focus:border-blue-500 transition">
+            <div x-show="open && adm.farm.length > 0" class="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-2xl shadow-2xl max-h-60 overflow-y-auto">
+              <template x-for="farm in farms.filter(f => f.toLowerCase().includes(adm.farm.toLowerCase()))">
+                <div @click="selectFarm(farm); open = false;" class="p-4 border-b border-slate-50 hover:bg-blue-50 cursor-pointer transition flex justify-between items-center">
+                  <span class="font-black text-slate-900" x-text="farm"></span>
+                  <span class="text-[8px] bg-blue-100 text-blue-600 px-3 py-1 rounded-full font-black uppercase">Select</span>
+                </div>
+              </template>
+            </div>
+          </div>
+          <button @click="save('farm', {name: adm.farm}); haptics.success();" class="w-full bg-blue-600 text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 shadow-lg transition">Register Farm</button>
+        </div>
+
+        <div class="space-y-6 md:border-l md:pl-12 border-slate-100">
+          <div x-show="adm.farm" x-transition>
+            
+            <label class="text-[10px] font-black uppercase text-slate-400 block mb-4">Groups for: <span class="text-slate-900" x-text="adm.farm"></span></label>
+            <div class="mb-6 p-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200 flex flex-wrap gap-2">
+              <template x-for="g in allData.groups.filter(x => x.farm === adm.farm)">
+                <button @click="selectGroup(g.name);" :class="activeGroup === g.name ? 'bg-slate-900 text-white shadow-lg' : 'bg-white text-slate-700'" class="border border-slate-200 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all flex items-center gap-2">
+                  <span class="w-1.5 h-1.5 rounded-full" :class="activeGroup === g.name ? 'bg-emerald-400' : 'bg-emerald-500'"></span>
+                  <span x-text="g.name"></span>
+                </button>
+              </template>
+            </div>
+
+            <div x-show="activeGroup" x-transition class="space-y-4 border-t pt-4">
+              <span class="text-[9px] font-black text-blue-600 uppercase block">Available Protocols:</span>
+              <div class="grid grid-cols-1 gap-2">
+                <template x-for="p in getFilteredProtocols()">
+                  <button @click="activeProtocol = p; haptics.success();" :class="activeProtocol === p ? 'border-blue-500 bg-blue-50' : 'border-slate-100 bg-white'" class="w-full text-left p-3 border-2 rounded-xl flex justify-between items-center group transition">
+                    <div>
+                      <span class="text-xs font-black text-slate-900 block" x-text="p.disease"></span>
+                      <span class="text-[10px] font-bold text-slate-400 uppercase" x-text="p.severity"></span>
+                    </div>
+                    <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                  </button>
+                </template>
+              </div>
+            </div>
+
+            <div x-show="activeProtocol" x-transition class="mt-6 p-5 bg-slate-900 text-white rounded-3xl shadow-2xl border border-slate-700">
+              <div class="flex justify-between items-start mb-4 border-b border-slate-700 pb-3">
+                <div>
+                  <h4 class="text-sm font-black uppercase tracking-widest text-blue-400" x-text="activeProtocol ? activeProtocol.disease : ''"></h4>
+                  <p class="text-[10px] font-bold text-slate-400 uppercase" x-text="activeProtocol ? 'ID: ' + activeProtocol.severity : ''"></p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button @click="duplicateProtocolToBuilder(); haptics.success();" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition flex items-center gap-1 shadow-sm">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                    Copy
+                  </button>
+                  <button @click="loadProtocolIntoBuilder(); haptics.success();" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition shadow-sm">Edit</button>
+                  <button @click="deleteActiveProtocol(); haptics.warning();" class="bg-red-900/50 hover:bg-red-600 text-red-200 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition shadow-sm">Del</button>
+                  <button @click="activeProtocol = null" class="text-slate-500 hover:text-white transition ml-2">✕</button>
+                </div>
+              </div>
+              
+              <div class="space-y-3">
+                <template x-if="activeProtocol">
+                  <template x-for="item in allData.protocols.filter(x => x.farm === adm.farm && x.group === activeGroup && x.disease === activeProtocol.disease && x.severity === activeProtocol.severity)">
+                    
+                    <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700/50 shadow-inner" x-data="{ d: drugs.find(d => d.name === item.drug) || {} }">
+                      <div class="flex justify-between items-start mb-3">
+                        <div class="flex flex-col gap-2">
+                          <span class="text-sm font-black text-white leading-tight" x-text="item.drug"></span>
+                          <span :class="d.isDosePerKg === 'Per Kg' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' : 'bg-slate-700 text-slate-400 border-slate-600'"
+                                class="w-fit text-[8px] px-2 py-0.5 rounded border font-black uppercase tracking-widest"
+                                x-text="d.isDosePerKg === 'Per Kg' ? 'Basis: Per KG' : 'Basis: Fixed'"></span>
+                        </div>
+                        <span class="text-[10px] font-black text-emerald-400 bg-emerald-900/30 px-3 py-1 rounded-full border border-emerald-500/20" 
+                              x-text="item.freq + ' • ' + item.dur + 'd'"></span>
+                      </div>
+
+                      <div class="grid grid-cols-2 gap-4 border-t border-slate-700/50 pt-3">
+                        <div class="flex flex-col">
+                          <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Amount / Unit</span>
+                          <span class="text-[11px] font-bold text-slate-200" x-text="(d.vol || '0') + ' ' + (d.unit || '')"></span>
+                        </div>
+                        <div class="flex flex-col">
+                          <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Admin Route</span>
+                          <span class="text-[11px] font-bold text-slate-200" x-text="d.route || 'N/A'"></span>
+                        </div>
+                        <div class="flex gap-4 col-span-2 mt-1">
+                          <span class="text-[9px] font-bold text-red-400/80 uppercase">Meat: <span class="text-red-200" x-text="(d.meat || '0') + 'd'"></span></span>
+                          <span class="text-[9px] font-bold text-blue-400/80 uppercase">Milk: <span class="text-blue-200" x-text="(d.milk || '0') + 'd'"></span></span>
+                        </div>
+                      </div>
+                    </div>
+
+                  </template>
+                </template>
+              </div>
+
+              <div class="mt-4 pt-3 border-t border-slate-700 flex items-center gap-2 text-slate-500">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                  <span class="text-[9px] font-bold uppercase tracking-widest">Last Updated: <span class="text-slate-300" x-text="activeProtocol && activeProtocol.lastModified ? activeProtocol.lastModified : 'Legacy Record'"></span></span>
+              </div>
+            </div>
+
+            <div class="flex gap-2 pt-6 border-t mt-6">
+              <input type="text" x-model="adm.groupName" placeholder="New group..." class="flex-1 border-2 border-slate-100 p-3 rounded-xl text-sm font-bold bg-white outline-none focus:border-blue-500">
+              <button @click="save('group', {farm: adm.farm, name: adm.groupName}); adm.groupName = ''; haptics.success();" class="bg-slate-900 text-white px-6 rounded-xl font-black text-[10px] uppercase transition">Add Group</button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-200">
+      <h3 class="font-black mb-8 uppercase text-slate-400 text-xs tracking-widest text-center border-b pb-4">Clinical Inventory Standards</h3>
+      <div class="grid grid-cols-1 md:grid-cols-6 gap-6 items-end">
+        <div class="md:col-span-6 relative" x-data="{ open: false }">
+           <label class="text-[10px] font-black uppercase text-slate-400 mb-1 block">Search / Add Drug Name</label>
+           <input type="text" x-model="adm.drug.name" @input="open = true" @click.away="open = false" placeholder="Drug name..." class="w-full border-2 border-slate-100 p-4 rounded-xl font-bold text-lg bg-slate-50 focus:bg-white focus:border-blue-500 outline-none transition">
+           <div x-show="open && adm.drug.name.length > 0" class="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-2xl shadow-2xl max-h-60 overflow-y-auto">
+              <template x-for="drug in drugs.filter(d => d.name.toLowerCase().includes(adm.drug.name.toLowerCase()))">
+                <div @click="selectExistingDrug(drug); open = false; haptics.success();" class="p-4 border-b border-slate-50 hover:bg-blue-50 cursor-pointer flex justify-between items-center transition">
+                  <div><span class="font-black text-slate-900" x-text="drug.name"></span><p class="text-[10px] text-slate-400 font-bold" x-text="drug.vol + ' ' + drug.unit + ' • ' + drug.route"></p></div>
+                  <span class="text-[8px] bg-blue-100 text-blue-600 px-3 py-1 rounded-full font-black uppercase">Prefill</span>
+                </div>
+              </template>
+           </div>
+        </div>
+        <div><label class="text-[10px] font-black text-slate-400 uppercase">Unit</label><input type="text" x-model="adm.drug.unit" class="w-full border p-3 rounded-xl bg-slate-50 font-bold"></div>
+        <div><label class="text-[10px] font-black text-slate-400 uppercase">Dose Value</label><input type="number" x-model="adm.drug.vol" class="w-full border p-3 rounded-xl bg-slate-50 font-bold text-blue-600"></div>
+        <div><label class="text-[10px] font-black text-slate-400 uppercase">Route</label><input type="text" x-model="adm.drug.route" class="w-full border p-3 rounded-xl bg-slate-50 font-bold"></div>
+        <div><label class="text-[10px] font-black text-red-400 uppercase">Meat WD</label><input type="number" x-model="adm.drug.meat" class="w-full border p-3 rounded-xl bg-slate-50 font-bold"></div>
+        <div><label class="text-[10px] font-black text-blue-400 uppercase">Milk WD</label><input type="number" x-model="adm.drug.milk" class="w-full border p-3 rounded-xl bg-slate-50 font-bold"></div>
+        <div>
+          <label class="text-[10px] font-black text-slate-400 uppercase">Basis</label>
+          <div class="flex bg-slate-100 p-1 rounded-xl border h-[46px]">
+            <button @click="adm.drug.isDosePerKg = false; haptics.success();" :class="!adm.drug.isDosePerKg ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-400'" class="flex-1 py-1 rounded-lg text-[10px] font-black uppercase transition">Fixed</button>
+            <button @click="adm.drug.isDosePerKg = true; haptics.success();" :class="adm.drug.isDosePerKg ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-400'" class="flex-1 py-1 rounded-lg text-[10px] font-black uppercase transition">/ kg</button>
+          </div>
+        </div>
+      </div>
+      <div class="flex gap-4 mt-8">
+         <button @click="save('drug', adm.drug); haptics.confirm();" class="flex-1 text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-lg transition active:scale-95" :class="isExistingDrug() ? 'bg-amber-600' : 'bg-blue-600'">
+          <span x-text="isExistingDrug() ? 'Update Inventory' : 'Add to Inventory'"></span>
+         </button>
+         <button @click="if(adm.drug.name) showDeleteModal = true" :disabled="!adm.drug.name" class="px-8 bg-white border-2 border-red-100 text-red-500 rounded-2xl flex items-center justify-center transition hover:bg-red-50 disabled:opacity-10">
+           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+         </button>
+      </div>
+    </div>
+
+    <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 builder-anchor">
+      <div class="flex justify-between items-center mb-6 border-b pb-4">
+          <div class="flex items-center gap-4">
+              <h3 class="font-black uppercase text-slate-400 text-xs tracking-widest">Protocol Architect</h3>
+              <template x-if="isEditMode"><span class="bg-amber-100 text-amber-600 text-[8px] font-black uppercase px-2 py-1 rounded-md border border-amber-200">Edit Mode</span></template>
+          </div>
+          <button @click="resetBuilder(); haptics.warning();" class="text-[9px] font-black uppercase text-slate-400 hover:text-red-500 transition">Reset Designer</button>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 items-end">
+        <div><label class="text-[10px] font-black text-slate-400 uppercase mb-1 block">Farm</label><select x-model="adm.p.farm" class="w-full border-2 border-slate-100 p-3 rounded-xl font-bold bg-slate-50"><option value="">Select...</option><template x-for="f in farms"><option :value="f" x-text="f"></option></template></select></div>
+        <div><label class="text-[10px] font-black text-slate-400 uppercase mb-1 block">Group</label><select x-model="adm.p.group" class="w-full border-2 border-slate-100 p-3 rounded-xl font-bold bg-slate-50"><option value="">Select...</option><template x-for="gr in (allData ? allData.groups.filter(x => x.farm === adm.p.farm) : [])"><option :value="gr.name" x-text="gr.name"></option></template></select></div>
+        <div><label class="text-[10px] font-black text-slate-400 uppercase mb-1 block">Diagnosis</label><input type="text" x-model="adm.p.disease" placeholder="e.g. Mastitis" class="w-full border-2 border-slate-100 p-3 rounded-xl font-bold bg-slate-50"></div>
+        <div><label class="text-[10px] font-black text-slate-400 uppercase mb-1 block">Protocol Key</label><input type="text" x-model="adm.p.severity" placeholder="e.g. SOP-001" class="w-full border-2 border-slate-100 p-3 rounded-xl font-bold bg-slate-50"></div>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <textarea x-model="adm.p.descEN" @change="autoTranslate()" placeholder="Signs (English)" class="border-2 border-blue-100 p-3 rounded-xl text-sm h-24 bg-blue-50 focus:bg-white outline-none transition-all"></textarea>
+        <textarea x-model="adm.p.descES" placeholder="Spanish..." class="border-2 border-slate-100 p-3 rounded-xl text-sm h-24 bg-slate-50 outline-none"></textarea>
+        <textarea x-model="adm.p.descPH" placeholder="Filipino..." class="border-2 border-slate-100 p-3 rounded-xl text-sm h-24 bg-slate-50 outline-none"></textarea>
+        <textarea x-model="adm.p.descPB" placeholder="Punjabi..." class="border-2 border-slate-100 p-3 rounded-xl text-sm h-24 bg-slate-50 outline-none"></textarea>
+      </div>
+
+      <div class="bg-slate-50 p-6 rounded-2xl mb-8 border border-slate-200">
+        <span class="text-[10px] font-black uppercase text-slate-400 block mb-4">Medication Sequence</span>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+          <div><label class="text-[9px] font-black uppercase text-slate-500">Add Drug</label><select x-model="adm.currDrug" class="w-full border-2 p-2 rounded-lg font-bold bg-white outline-none focus:border-blue-500"><option value="">Select Drug...</option><template x-for="d in drugs"><option :value="d.name" x-text="d.name"></option></template></select></div>
+          <div><label class="text-[9px] font-black uppercase text-slate-500">Freq</label><input type="text" x-model="adm.currFreq" placeholder="SID" class="w-full border-2 p-2 rounded-lg font-bold bg-white outline-none focus:border-blue-500"></div>
+          <div><label class="text-[9px] font-black uppercase text-slate-500">Days</label><input type="number" x-model="adm.currDur" placeholder="3" class="w-full border-2 p-2 rounded-lg font-bold bg-white outline-none focus:border-blue-500"></div>
+          <button @click="addDrugToP(); haptics.success();" class="bg-slate-900 text-white py-2 rounded-lg font-black uppercase text-[10px] h-[42px] transition active:scale-95">Add Step</button>
+        </div>
+
+        <div class="mt-6 space-y-2">
+          <template x-for="(d, index) in adm.p.drugs">
+            <div class="bg-white border p-3 rounded-xl flex justify-between items-center shadow-sm">
+              <div class="flex items-center gap-4">
+                <span class="w-6 h-6 bg-slate-900 text-white rounded-full flex items-center justify-center text-[10px] font-black" x-text="index + 1"></span>
+                <div>
+                  <span class="text-sm font-black text-slate-900" x-text="d.name"></span>
+                  <span class="text-[10px] text-slate-400 font-bold uppercase ml-2" x-text="d.freq + ' x ' + d.dur + 'd'"></span>
+                </div>
+              </div>
+              <button @click="adm.p.drugs.splice(index, 1); haptics.warning();" class="text-red-400 hover:text-red-600 transition">✕</button>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <button @click="saveProtocol(); haptics.confirm();" :disabled="adm.p.drugs.length === 0" :class="isEditMode ? 'bg-amber-600' : 'bg-green-600'" class="w-full text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl transition disabled:opacity-20 active:scale-[0.99]">
+        <span x-text="isEditMode ? 'Overwrite & Update Protocol' : 'Save New Protocol Sequence'"></span>
+      </button>
+    </div>
+</div>
+
+<div x-show="showDeleteModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-sm" x-transition x-cloak>
+  <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-slate-200">
+    <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg></div>
+    <h3 class="text-center font-black text-slate-900 text-xl mb-2">Delete Medication?</h3>
+    <p class="text-center text-slate-500 text-sm mb-8">Permanently remove <span class="font-bold text-slate-900" x-text="adm.drug.name"></span> from inventory?</p>
+    <div class="flex gap-3">
+      <button @click="showDeleteModal = false" class="flex-1 py-3 rounded-xl font-black uppercase text-xs text-slate-400 hover:bg-slate-50 transition">Cancel</button>
+      <button @click="confirmDelete(); haptics.warning();" class="flex-1 py-3 bg-red-600 text-white rounded-xl font-black uppercase text-xs transition">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div x-show="showSaved" x-transition class="fixed bottom-20 md:bottom-8 right-4 md:right-8 z-[200] no-print bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3">
+  <div class="bg-emerald-500 p-1 rounded-full"><svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="3" d="M5 13l4 4L19 7"></path></svg></div>
+  <span class="font-bold text-sm uppercase tracking-tight">Database Updated</span>
+</div>
+</div>
+<script>
+  // Paste your actual long base64 string here (I have truncated it for formatting)
+  const LOGO_BASE64 = "data:image/png;base64,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";
+
+function protocolApp() {
+  // --- HARDWARE APIS ---
+  const haptics = {
+    success: () => { if (window.navigator?.vibrate) window.navigator.vibrate(40); },
+    confirm: () => { if (window.navigator?.vibrate) window.navigator.vibrate([40, 60, 40]); },
+    warning: () => { if (window.navigator?.vibrate) window.navigator.vibrate(200); }
+  };
+
+  return {
+    // --- AUTH & CONFIG ---
+    // PASTE YOUR GOOGLE WEB APP URL HERE:
+    API_URL: 'https://script.google.com/macros/s/AKfycbygeZSqk95m9_ZntKOrxImxjcnjcKkhM_Fr6zDGyvuFYnWVbjWNGOksnvne7B_5Dyozrw/exec', 
+    token: localStorage.getItem('herdlink_token') || null,
+    loginPin: '',
+    loginName: '',
+
+    // --- GLOBAL STATE ---
+    view: 'gen', 
+    syncStatus: 'syncing', 
+    showInstallPrompt: false,
+    deferredPrompt: null,
+    showSaved: false, 
+    showDeleteModal: false,
+    draftRecovered: false,
+    allData: null, 
+    farms: [], 
+    drugs: [], 
+    filteredGroups: [], 
+    filteredDiseases: [], 
+    filteredSeverities: [],
+    f: '', g: '', d: '', s: '', 
+    outputLang: 'EN', 
+    results: null,
+    doseType: 'animal', 
+    unitSystem: 'kgs', 
+    weight: '', 
+    productionType: '',
+    productionTypes: ['Youngstock', 'Milking Cow', 'Beef Cow', 'Dry Cow'],
+    LOGO_BASE64: typeof LOGO_BASE64 !== 'undefined' ? LOGO_BASE64 : '', 
+    haptics,
+
+    // --- ADMIN & EDIT STATE ---
+    isEditMode: false,
+    activeGroup: '',
+    activeProtocol: null,
+    originalProtocol: { farm: '', group: '', disease: '', severity: '' }, 
+
+    adm: { 
+      farm: '', 
+      groupFarm: '', 
+      groupName: '', 
+      drug: {name:'', unit:'', vol:'', route:'', meat:'', milk:'', isDosePerKg: false}, 
+      p: {farm:'', group:'', disease:'', severity:'', descEN:'', descES:'', descPH:'', descPB:'', drugs:[]}, 
+      currDrug: '', currFreq: '', currDur: '' 
+    },
+
+    dictionary: {
+      EN: { volume: "Amount", days: "DAYS", withdrawalHeader: "MANDATORY WITHDRAWAL", meat: "Meat Withdrawal", milk: "Milk Withdrawal" },
+      ES: { volume: "Cantidad", days: "DÍAS", withdrawalHeader: "RETIRO OBLIGATORIO", meat: "Retiro de Carne", milk: "Retiro de Leche" },
+      PH: { volume: "Dami", days: "ARAW", withdrawalHeader: "PANAHON NG PAG-ALIS", meat: "Pag-alis ng Karne", milk: "Pag-alis ng Gatas" },
+      PB: { volume: "ਮਾਤਰਾ", days: "ਦਿਨ", withdrawalHeader: "ਲਾਜ਼ਮੀ ਨਿਕਾਸੀ ਸਮਾਂ", meat: "ਮੀਟ ਦੀ ਨਿਕਾਸੀ", milk: "ਦੁੱਧ ਦੀ ਨਿਕਾਸੀ" }
+    },
+
+    // --- SECURE API BRIDGE ---
+    async callAPI(action, extraPayload = {}) {
+      if (!this.API_URL || this.API_URL.includes('YOUR_DEPLOYED')) {
+        this.notifyError("API URL not configured in Index.html");
+        return null;
+      }
+
+      try {
+        const response = await fetch(this.API_URL, {
+          method: 'POST',
+          mode: 'no-cors', // Needed for Google Apps Script redirects
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: action,
+            token: this.token,
+            ...extraPayload
+          })
+        });
+
+        // NOTE: Google 'no-cors' mode returns an opaque response.
+        // We actually need a small trick to get the data:
+        // We'll use a standard fetch but handle the CORS redirect on the GAS side.
+        
+        // REVISED FETCH FOR DATA RETRIEVAL:
+        const realResp = await fetch(this.API_URL + "?callback=?", {
+           method: 'POST',
+           body: JSON.stringify({ action, token: this.token, ...extraPayload })
+        });
+        
+        const result = await realResp.json();
+        
+        if (!result.success) {
+          if (result.error?.includes("Unauthorized")) this.logout();
+          throw new Error(result.error);
+        }
+        return result.data || result;
+      } catch (e) {
+        console.error("API Error:", e);
+        this.notifyError("Connection Error: " + e.message);
+        return null;
+      }
+    },
+
+    // --- AUTH ACTIONS ---
+    async login() {
+      if (!this.loginPin) return;
+      this.syncStatus = 'syncing';
+      
+      try {
+        const resp = await fetch(this.API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ 
+            action: 'login', 
+            pin: this.loginPin, 
+            vetName: this.loginName 
+          })
+        });
+        const result = await resp.json();
+        
+        if (result.success && result.token) {
+          this.token = result.token;
+          localStorage.setItem('herdlink_token', result.token);
+          this.haptics.confirm();
+          this.init(); // Re-run init to load data
+        } else {
+          throw new Error(result.error || "Invalid PIN");
+        }
+      } catch (e) {
+        this.notifyError(e.message, true);
+      }
+    },
+
+    logout() {
+      this.token = null;
+      localStorage.removeItem('herdlink_token');
+      localStorage.removeItem('herdlink_cache');
+      this.view = 'login';
+    },
+
+    // --- INITIALIZATION ---
+    async init() {
+      // 1. GATEKEEPER: If no token, force login view
+      if (!this.token) {
+        this.view = 'login';
+        this.syncStatus = 'connected';
+        return;
+      }
+
+      // 2. LOAD CACHE
+      const cachedData = localStorage.getItem('herdlink_cache');
+      if (cachedData) {
+        try {
+          this._mapIncomingData(JSON.parse(cachedData));
+          this.syncStatus = 'offline-cached';
+        } catch (e) { localStorage.removeItem('herdlink_cache'); }
+      }
+
+      // 3. SYNC FROM API
+      const freshData = await this.callAPI('loadData');
+      if (freshData) {
+        this._mapIncomingData(freshData);
+        this.syncStatus = 'connected';
+        localStorage.setItem('herdlink_cache', JSON.stringify(freshData));
+      }
+
+      // (Draft Recovery & Auto-save Watcher logic remains same as before)
+      this._setupDraftRecovery();
+      this._setupPWAEvents();
+    },
+
+    // --- REPLACEMENT ACTIONS (Using callAPI) ---
+    async save(type, payload) {
+      if (!navigator.onLine) return this.notifyError("No connection.", true);
+      this.syncStatus = 'syncing';
+      const data = await this.callAPI('saveData', { type, payload });
+      if (data) {
+        this._mapIncomingData(data);
+        if(type === 'drug') this.adm.drug = {name:'', unit:'', vol:'', route:'', meat:'', milk:'', isDosePerKg: false};
+        this.notifySuccess();
+      }
+    },
+
+    async saveProtocol() {
+      if (!navigator.onLine) return this.notifyError("No connection.", true);
+      this.syncStatus = 'syncing';
+      
+      const rows = this.adm.p.drugs.map(dr => [
+        this.adm.p.farm, this.adm.p.group, this.adm.p.disease, this.adm.p.severity, 
+        dr.name, dr.freq, dr.dur, this.adm.p.descEN, this.adm.p.descES, 
+        this.adm.p.descPH, this.adm.p.descPB, dr.freqES, dr.routeES, 
+        dr.freqPH, dr.routePH, dr.freqPB, dr.routePB, new Date().toLocaleString()
+      ]);
+
+      if (this.isEditMode) {
+        // Delete first using original keys
+        const del = await this.callAPI('deleteProtocol', { 
+          payload: [this.originalProtocol.farm, this.originalProtocol.group, this.originalProtocol.disease, this.originalProtocol.severity] 
+        });
+        if (!del) return;
+      }
+      
+      const data = await this.callAPI('saveData', { type: 'protocol', payload: rows });
+      if (data) {
+        this._mapIncomingData(data);
+        this.resetBuilder();
+        this.notifySuccess();
+      }
+    },
+
+    // (Helper functions _mapIncomingData, _setupDraftRecovery, calculateDose, etc. remain as previously optimized)
+  };
+}
+</script>
+<div 
+  x-show="draftRecovered" 
+  x-transition:enter="transition ease-out duration-300"
+  x-transition:enter-start="opacity-0 translate-y-8"
+  x-transition:enter-end="opacity-100 translate-y-0"
+  x-transition:leave="transition ease-in duration-200"
+  x-transition:leave-start="opacity-100 translate-y-0"
+  x-transition:leave-end="opacity-0 translate-y-8"
+  class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-slate-900 text-white px-5 py-3 rounded-full shadow-2xl border border-slate-700 w-max max-w-[90vw]"
+  style="display: none;"
+>
+  <svg class="w-5 h-5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+  </svg>
+  
+  <span class="text-sm font-bold tracking-wide uppercase">Unsaved draft recovered</span>
+  
+  <button @click="draftRecovered = false" class="ml-2 text-slate-400 hover:text-white transition active:scale-90">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+    </svg>
+  </button>
+</div>
+</body>
+</html>
