@@ -1,25 +1,28 @@
 {
+  "name": "HerdLink Protocol Generator",
   "short_name": "HerdLink",
-  "name": "HerdLink: Abbotsford Vet",
+  "description": "Secure Large Animal Veterinary Protocol Management",
+  "start_url": "/protocol_generator/",
+  "scope": "/protocol_generator/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "orientation": "portrait",
   "icons": [
     {
-      "src": "https://jamespatterson100.github.io/protocol_generator/android-chrome-192x192.png",
-      "type": "image/png",
+      "src": "icon-192.png",
       "sizes": "192x192",
-      "purpose": "any"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "https://jamespatterson100.github.io/protocol_generator/android-chrome-512x512.png",
-      "type": "image/png",
+      "src": "icon-512.png",
       "sizes": "512x512",
-      "purpose": "any"
+      "type": "image/png"
     }
-  ],
-  "start_url": "https://script.google.com/macros/s/AKfycbwGR0AamDdUFL3sjx4Aw2VvzD6epOZoUcKoSO4pD530YoMmYd9QI16NYSR8y1TqEzofew/exec",
-  "background_color": "#f8fafc",
-  "display": "standalone", 
-  "theme_color": "#0f172a"
+  ]
 }
+
 
 
 
