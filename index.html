@@ -423,7 +423,7 @@
             
             <label class="text-[10px] font-black uppercase text-slate-400 block mb-4">Groups for: <span class="text-slate-900" x-text="adm.farm"></span></label>
             <div class="mb-6 p-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200 flex flex-wrap gap-2">
-              <template x-for="g in allData.groups.filter(x => x.farm === adm.farm)">
+              <template x-for="g in (allData ? allData.groups.filter(x => x.farm === adm.farm) : [])">
                 <button @click="selectGroup(g.name);" :class="activeGroup === g.name ? 'bg-slate-900 text-white shadow-lg' : 'bg-white text-slate-700'" class="border border-slate-200 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all flex items-center gap-2">
                   <span class="w-1.5 h-1.5 rounded-full" :class="activeGroup === g.name ? 'bg-emerald-400' : 'bg-emerald-500'"></span>
                   <span x-text="g.name"></span>
@@ -867,4 +867,5 @@ function protocolApp() {
   </button>
 </div>
 </body>
+
 </html>
