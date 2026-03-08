@@ -732,6 +732,12 @@ function protocolApp() {
       }
     },
 
+    notifyError(msg, forceAlert = false) {
+          this.syncStatus = 'connected';
+          if (this.haptics && this.haptics.warning) this.haptics.warning();
+          if (forceAlert || msg) alert(msg);
+        },
+
     getFilteredProtocols() {
           if (!this.adm.farm || !this.activeGroup || !this.allData?.protocols) return [];
           const selectedFarm = String(this.adm.farm).trim().toLowerCase();
@@ -894,4 +900,5 @@ function protocolApp() {
 </body>
 
 </html>
+
 
