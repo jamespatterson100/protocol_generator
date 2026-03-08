@@ -636,7 +636,6 @@ function protocolApp() {
 
   return {
     // --- AUTH & CONFIG ---
-    // PASTE YOUR GOOGLE WEB APP URL HERE:
     API_URL: 'https://script.google.com/macros/s/AKfycbygeZSqk95m9_ZntKOrxImxjcnjcKkhM_Fr6zDGyvuFYnWVbjWNGOksnvne7B_5Dyozrw/exec', 
     token: localStorage.getItem('herdlink_token') || null,
     loginPin: '',
@@ -691,34 +690,22 @@ function protocolApp() {
 
     // --- SECURE API BRIDGE ---
     async callAPI(action, extraPayload = {}) {
-      if (!this.API_URL || this.API_URL.includes('YOUR_DEPLOYED')) {
-        this.notifyError("API URL not configured in Index.html");
+      if (!navigator.onLine) {
+        this.notifyError("Offline: Cannot reach the clinic vault.");
         return null;
       }
 
       try {
         const response = await fetch(this.API_URL, {
           method: 'POST',
-          mode: 'no-cors', // Needed for Google Apps Script redirects
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             action: action,
             token: this.token,
             ...extraPayload
           })
         });
-
-        // NOTE: Google 'no-cors' mode returns an opaque response.
-        // We actually need a small trick to get the data:
-        // We'll use a standard fetch but handle the CORS redirect on the GAS side.
         
-        // REVISED FETCH FOR DATA RETRIEVAL:
-        const realResp = await fetch(this.API_URL + "?callback=?", {
-           method: 'POST',
-           body: JSON.stringify({ action, token: this.token, ...extraPayload })
-        });
-        
-        const result = await realResp.json();
+        const result = await response.json();
         
         if (!result.success) {
           if (result.error?.includes("Unauthorized")) this.logout();
@@ -727,64 +714,59 @@ function protocolApp() {
         return result.data || result;
       } catch (e) {
         console.error("API Error:", e);
-        this.notifyError("Connection Error: " + e.message);
+        this.notifyError("Sync Failed: " + e.message);
         return null;
       }
     },
 
-    notifyError(msg, forceAlert = false) {
-          this.syncStatus = 'connected';
-          if (this.haptics && this.haptics.warning) this.haptics.warning();
-          if (forceAlert || msg) alert(msg);
-        },
+    // --- INITIALIZATION ---
+    async init() {
+      // 1. Gatekeeper Check
+      if (!this.token) {
+        this.view = 'login';
+        this.syncStatus = 'connected';
+        return;
+      }
 
-    getFilteredProtocols() {
-          if (!this.adm.farm || !this.activeGroup || !this.allData?.protocols) return [];
-          const selectedFarm = String(this.adm.farm).trim().toLowerCase();
-          const selectedGroup = String(this.activeGroup).trim().toLowerCase();
-          
-          const seen = new Set();
-          return this.allData.protocols.filter(p => {
-            if (String(p.farm).trim().toLowerCase() !== selectedFarm || String(p.group).trim().toLowerCase() !== selectedGroup) return false;
-            const key = `${p.disease || ''}-${p.severity || ''}`.toLowerCase().trim();
-            if (seen.has(key)) return false;
-            seen.add(key);
-            return true;
-          });
-        },
-        
-        isExistingDrug() {
-          if (!this.adm.drug.name || !this.drugs) return false;
-          const searchName = this.adm.drug.name.trim().toLowerCase();
-          return this.drugs.some(d => 
-            d.name.trim().toLowerCase() === searchName &&
-            String(d.vol).trim() === String(this.adm.drug.vol).trim() &&
-            d.route.trim().toLowerCase() === this.adm.drug.route.trim().toLowerCase() &&
-            (d.isDosePerKg === this.adm.drug.isDosePerKg || d.isDosePerKg === (this.adm.drug.isDosePerKg ? 'Per Kg' : 'Fixed'))
-          );
-        },
+      // 2. Load Local Cache (Fast Load)
+      const cachedData = localStorage.getItem('herdlink_cache');
+      if (cachedData) {
+        try {
+          this._mapIncomingData(JSON.parse(cachedData));
+          this.syncStatus = 'offline-cached';
+        } catch (e) { localStorage.removeItem('herdlink_cache'); }
+      }
+
+      // 3. Sync Fresh Data
+      const freshData = await this.callAPI('loadData');
+      if (freshData) {
+        this._mapIncomingData(freshData);
+        this.syncStatus = 'connected';
+        localStorage.setItem('herdlink_cache', JSON.stringify(freshData));
+      }
+
+      // 4. Setup Background Watchers
+      this._setupDraftRecovery();
+      this._setupAutoSave();
+      this._setupPWAEvents();
+    },
 
     // --- AUTH ACTIONS ---
     async login() {
       if (!this.loginPin) return;
       this.syncStatus = 'syncing';
-      
       try {
         const resp = await fetch(this.API_URL, {
           method: 'POST',
-          body: JSON.stringify({ 
-            action: 'login', 
-            pin: this.loginPin, 
-            vetName: this.loginName 
-          })
+          body: JSON.stringify({ action: 'login', pin: this.loginPin, vetName: this.loginName })
         });
         const result = await resp.json();
-        
         if (result.success && result.token) {
           this.token = result.token;
           localStorage.setItem('herdlink_token', result.token);
+          this.view = 'gen';
           this.haptics.confirm();
-          this.init(); // Re-run init to load data
+          await this.init();
         } else {
           throw new Error(result.error || "Invalid PIN");
         }
@@ -800,38 +782,54 @@ function protocolApp() {
       this.view = 'login';
     },
 
-    // --- INITIALIZATION ---
-    async init() {
-      // 1. GATEKEEPER: If no token, force login view
-      if (!this.token) {
-        this.view = 'login';
-        this.syncStatus = 'connected';
-        return;
-      }
-
-      // 2. LOAD CACHE
-      const cachedData = localStorage.getItem('herdlink_cache');
-      if (cachedData) {
-        try {
-          this._mapIncomingData(JSON.parse(cachedData));
-          this.syncStatus = 'offline-cached';
-        } catch (e) { localStorage.removeItem('herdlink_cache'); }
-      }
-
-      // 3. SYNC FROM API
-      const freshData = await this.callAPI('loadData');
-      if (freshData) {
-        this._mapIncomingData(freshData);
-        this.syncStatus = 'connected';
-        localStorage.setItem('herdlink_cache', JSON.stringify(freshData));
-      }
-
-      // (Draft Recovery & Auto-save Watcher logic remains same as before)
-      this._setupDraftRecovery();
-      this._setupPWAEvents();
+    // --- CORE GENERATOR LOGIC ---
+    updateGroups() { 
+      if(!this.allData) return; 
+      this.results = null;
+      this.filteredGroups = this.allData.groups.filter(x => x.farm === this.f).map(x => x.name); 
+      this.g = ''; this.d = ''; this.s = ''; 
     },
 
-    // --- REPLACEMENT ACTIONS (Using callAPI) ---
+    updateDiseases() { 
+      if(!this.allData) return; 
+      this.results = null;
+      this.filteredDiseases = [...new Set(this.allData.protocols.filter(x => x.farm === this.f && x.group === this.g).map(x => x.disease))]; 
+      this.d = ''; this.s = ''; 
+    },
+
+    updateSeverities() { 
+      if(!this.allData) return; 
+      this.results = null;
+      this.filteredSeverities = [...new Set(this.allData.protocols.filter(x => x.farm === this.f && x.group === this.g && x.disease === this.d).map(x => x.severity))]; 
+      this.s = ''; 
+    },
+
+    generate() {
+      if (document.activeElement) document.activeElement.blur();
+      const items = this.allData.protocols.filter(x => x.farm === this.f && x.group === this.g && x.disease === this.d && x.severity === this.s);
+      if (!items.length) return this.notifyError("No protocol found.", true);
+      
+      let mMeat = 0, mMilk = 0;
+      const treatments = items.map(p => {
+        const dr = this.allData.drugs.find(x => x.name === p.drug);
+        if(dr) {
+          mMeat = Math.max(mMeat, dr.meat);
+          if(this.showMilkWD()) mMilk = Math.max(mMilk, dr.milk);
+          return { ...p, displayAmount: this.calculateDose(dr), route: dr.route };
+        }
+        return { ...p, displayAmount: 'Err', route: 'N/A' };
+      });
+
+      this.results = { 
+        treatments, meatMax: mMeat, milkMax: mMilk, 
+        desc_EN: items[0].desc_EN, desc_ES: items[0].desc_ES, 
+        desc_PH: items[0].desc_PH, desc_PB: items[0].desc_PB 
+      };
+      this.haptics.confirm();
+      setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 100);
+    },
+
+    // --- ADMIN ACTIONS ---
     async save(type, payload) {
       if (!navigator.onLine) return this.notifyError("No connection.", true);
       this.syncStatus = 'syncing';
@@ -846,22 +844,17 @@ function protocolApp() {
     async saveProtocol() {
       if (!navigator.onLine) return this.notifyError("No connection.", true);
       this.syncStatus = 'syncing';
-      
+      const timestamp = new Date().toLocaleString();
       const rows = this.adm.p.drugs.map(dr => [
         this.adm.p.farm, this.adm.p.group, this.adm.p.disease, this.adm.p.severity, 
         dr.name, dr.freq, dr.dur, this.adm.p.descEN, this.adm.p.descES, 
         this.adm.p.descPH, this.adm.p.descPB, dr.freqES, dr.routeES, 
-        dr.freqPH, dr.routePH, dr.freqPB, dr.routePB, new Date().toLocaleString()
+        dr.freqPH, dr.routePH, dr.freqPB, dr.routePB, timestamp
       ]);
 
       if (this.isEditMode) {
-        // Delete first using original keys
-        const del = await this.callAPI('deleteProtocol', { 
-          payload: [this.originalProtocol.farm, this.originalProtocol.group, this.originalProtocol.disease, this.originalProtocol.severity] 
-        });
-        if (!del) return;
+        await this.callAPI('deleteProtocol', { payload: [this.originalProtocol.farm, this.originalProtocol.group, this.originalProtocol.disease, this.originalProtocol.severity] });
       }
-      
       const data = await this.callAPI('saveData', { type: 'protocol', payload: rows });
       if (data) {
         this._mapIncomingData(data);
@@ -870,7 +863,124 @@ function protocolApp() {
       }
     },
 
-    // (Helper functions _mapIncomingData, _setupDraftRecovery, calculateDose, etc. remain as previously optimized)
+    async deleteActiveProtocol() {
+      if (!this.activeProtocol || !confirm('Permanently delete this entire sequence?')) return;
+      this.syncStatus = 'syncing';
+      const data = await this.callAPI('deleteProtocol', { payload: [this.adm.farm, this.activeGroup, this.activeProtocol.disease, this.activeProtocol.severity] });
+      if (data) {
+        this._mapIncomingData(data);
+        this.activeProtocol = null;
+        this.notifySuccess();
+      }
+    },
+
+    async autoTranslate() {
+      if (!this.adm.p.descEN) return this.notifyError("Enter an English description first.", true);
+      this.syncStatus = 'syncing';
+      const trans = await this.callAPI('translate', { payload: this.adm.p.descEN });
+      if (trans) {
+        this.adm.p.descES = trans.es; this.adm.p.descPH = trans.ph; this.adm.p.descPB = trans.pb;
+        this.notifySuccess();
+      }
+    },
+
+    async addDrugToP() {
+      if (!this.adm.currDrug) return;
+      const dSpec = this.drugs.find(x => x.name === this.adm.currDrug);
+      this.syncStatus = 'syncing';
+      const trans = await this.callAPI('translateDrugSpecs', { payload: {freq: this.adm.currFreq, route: dSpec.route} });
+      if (trans) {
+        this.adm.p.drugs.push({
+          name: this.adm.currDrug, freq: this.adm.currFreq, dur: this.adm.currDur,
+          vol: dSpec.vol, unit: dSpec.unit, route: dSpec.route, isDosePerKg: dSpec.isDosePerKg,
+          freqES: trans.es.freq, routeES: trans.es.route, freqPH: trans.ph.freq, routePH: trans.ph.route, freqPB: trans.pa.freq, routePB: trans.pa.route
+        });
+        this.adm.currDrug = ''; this.adm.currFreq = ''; this.adm.currDur = '';
+        this.notifySuccess();
+      }
+    },
+
+    // --- HELPERS ---
+    calculateDose(drugObj) {
+      if (!drugObj) return 'Err';
+      const isWeightBased = drugObj.isDosePerKg === true || String(drugObj.isDosePerKg).toLowerCase() === 'per kg';
+      if (this.doseType === 'animal') {
+        if (!isWeightBased) return drugObj.vol + ' ' + drugObj.unit;
+        if (!this.weight) return drugObj.vol + ' ' + drugObj.unit;
+        let w = parseFloat(this.weight);
+        if (this.unitSystem === 'lbs') w = w / 2.20462;
+        return (w * parseFloat(drugObj.vol)).toFixed(1) + ' ' + drugObj.unit;
+      } else {
+        if (!isWeightBased) return drugObj.vol + ' ' + drugObj.unit;
+        const base = this.unitSystem === 'kgs' ? '100kg' : '220lbs';
+        return `${drugObj.vol} ${drugObj.unit} / ${base}`;
+      }
+    },
+
+    getFilteredProtocols() {
+      if (!this.adm.farm || !this.activeGroup || !this.allData?.protocols) return [];
+      const f = String(this.adm.farm).trim().toLowerCase();
+      const g = String(this.activeGroup).trim().toLowerCase();
+      const seen = new Set();
+      return this.allData.protocols.filter(p => {
+        if (String(p.farm).trim().toLowerCase() !== f || String(p.group).trim().toLowerCase() !== g) return false;
+        const key = `${p.disease}-${p.severity}`.toLowerCase().trim();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    },
+
+    isExistingDrug() {
+      if (!this.adm.drug.name || !this.drugs) return false;
+      const n = this.adm.drug.name.trim().toLowerCase();
+      return this.drugs.some(d => d.name.trim().toLowerCase() === n && String(d.vol) === String(this.adm.drug.vol));
+    },
+
+    showMilkWD() { return ['Milking Cow', 'Dry Cow'].includes(this.productionType); },
+
+    _mapIncomingData(data) {
+      this.allData = data;
+      this.farms = [...data.farms].sort();
+      this.drugs = [...data.drugs].sort((a, b) => a.name.localeCompare(b.name));
+    },
+
+    notifySuccess() {
+      this.syncStatus = 'connected';
+      this.showSaved = true;
+      this.haptics.confirm();
+      setTimeout(() => this.showSaved = false, 2000);
+    },
+
+    notifyError(msg, forceAlert = false) {
+      this.syncStatus = 'connected';
+      this.haptics.warning();
+      if (forceAlert || msg) alert(msg);
+    },
+
+    resetBuilder() {
+      this.isEditMode = false;
+      this.adm.p = { farm: this.adm.farm || '', group: this.activeGroup || '', disease: '', severity: '', descEN: '', descES: '', descPH: '', descPB: '', drugs: [] };
+      localStorage.removeItem('herdlink_builder_draft');
+    },
+
+    // --- INTERNAL SETUP ---
+    _setupDraftRecovery() {
+      const draft = localStorage.getItem('herdlink_builder_draft');
+      if (draft) {
+        this.adm.p = JSON.parse(draft);
+        this.draftRecovered = true;
+        setTimeout(() => this.draftRecovered = false, 5000);
+      }
+    },
+    _setupAutoSave() {
+      this.$watch('adm.p', (val) => {
+        if (val.disease || val.drugs.length > 0) localStorage.setItem('herdlink_builder_draft', JSON.stringify(val));
+      }, { deep: true });
+    },
+    _setupPWAEvents() {
+      window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); this.deferredPrompt = e; this.showInstallPrompt = true; });
+    }
   };
 }
 </script>
@@ -900,5 +1010,6 @@ function protocolApp() {
 </body>
 
 </html>
+
 
 
