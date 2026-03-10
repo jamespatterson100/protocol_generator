@@ -867,6 +867,50 @@ function protocolApp() {
       this.s = ''; 
     },
 
+    async triggerFarmDelete() {
+          if (!this.adminSelectedFarm) return;
+          
+          // STRICT WARNING
+          const isConfirmed = confirm(`CRITICAL WARNING:\n\nAre you absolutely sure you want to permanently delete "${this.adminSelectedFarm}"?\n\nThis will instantly erase ALL management groups and ALL protocols associated with this farm. This cannot be undone.`);
+          
+          if (!isConfirmed) return;
+
+          this.syncStatus = 'syncing';
+          
+          try {
+            const response = await fetch(this.scriptUrl, {
+              method: 'POST',
+              body: JSON.stringify({
+                action: 'deleteFarm',
+                token: this.token,
+                payload: this.adminSelectedFarm // Sending the farm name
+              })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+              // Update the local data with the scrubbed dataset
+              this.allData = result.data;
+              this.processData(); // Rebuilds the frontend arrays
+              
+              // Clear selectors so we don't hold onto 'ghost' data
+              if (this.f === this.adminSelectedFarm) {
+                this.f = ''; this.g = ''; this.d = ''; this.s = ''; this.results = null;
+              }
+              
+              alert(`Success: ${this.adminSelectedFarm} and all of its associated data have been permanently deleted.`);
+              this.adminSelectedFarm = ''; // Reset the admin dropdown
+            } else {
+              alert("Error deleting farm: " + result.error);
+            }
+          } catch (e) {
+            alert("Network error: Please ensure you have internet access. " + e.message);
+          } finally {
+            this.syncStatus = 'connected';
+          }
+        },
+
     generate() {
       if (document.activeElement) document.activeElement.blur();
       const items = this.allData.protocols.filter(x => x.farm === this.f && x.group === this.g && x.disease === this.d && x.severity === this.s);
@@ -1073,6 +1117,7 @@ function protocolApp() {
 </body>
 
 </html>
+
 
 
 
