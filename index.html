@@ -20,73 +20,48 @@
     [x-cloak] { display: none !important; }
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
     body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-    [x-cloak] { display: none !important; }
 
-    /* MOBILE-FIRST CARD TRANSFORMATION */
+    /* MOBILE TABLE STYLES (Keep as is) */
     @media (max-width: 768px) {
       .responsive-table, .responsive-table thead, .responsive-table tbody, .responsive-table th, .responsive-table td, .responsive-table tr { 
         display: block !important; 
         width: 100% !important;
       }
       .responsive-table thead { display: none !important; }
-      .responsive-row {
-        background: #f8fafc;
-        margin-bottom: 1rem;
-        padding: 1.25rem;
-        border-radius: 1.25rem;
-        border: 1px solid #e2e8f0;
-      }
-      .med-amount-mobile {
-        font-size: 1.5rem !important;
-        font-weight: 900;
-        color: #1e3a8a;
-        display: block;
-        margin-top: 0.25rem;
-      }
+      .responsive-row { background: #f8fafc; margin-bottom: 1rem; padding: 1.25rem; border-radius: 1.25rem; border: 1px solid #e2e8f0; }
     }
 
-/* 2. Professional Print Rules */
-@media print {
-  @page {
-    size: letter;
-    margin: 0; /* Critical for hiding URL/Header/Footer */
-  }
+    /* PROFESSIONAL PRINT RULES */
+    @media print {
+      @page { size: letter; margin: 0; }
+      body * { visibility: hidden !important; }
+      #print-area, #print-area * { visibility: visible !important; }
+      #print-area {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 8.5in !important;
+        height: 11in !important;
+        padding: 30px 30px 90px 30px !important;
+        margin: 0 !important;
+        transform: scale(1) !important; /* Force scale 1 for actual print */
+        transform-origin: top left !important;
+        box-shadow: none !important;
+        border: none !important;
+        background-color: white !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .no-print { display: none !important; }
+    }
 
-  /* Hide everything on the page EXCEPT the print-area */
-  body * {
-    visibility: hidden !important;
-  }
-
-  #print-area, #print-area * {
-    visibility: visible !important;
-  }
-
-  #print-area {
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 8.5in !important;
-    height: 11in !important;
-    padding: 30px 30px 90px 30px !important;
-    margin: 0 !important;
-    transform: none !important; /* Scale must be 1 during print */
-    box-shadow: none !important;
-    border: none !important;
-    background-color: white !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  /* Force display of elements that might be hidden by visibility:hidden */
-  .no-print { display: none !important; }
-}
-
-/* 3. Preview Container Styles */
-.preview-well {
-  background-image: radial-gradient(#94a3b8 1px, transparent 1px);
-  background-size: 15px 15px;
-}
-  </style>
+    /* PREVIEW CONTAINER */
+    .preview-well {
+      background-image: radial-gradient(#94a3b8 1px, transparent 1px);
+      background-size: 20px 20px;
+      min-height: 400px;
+    }
+</style>
 </head>
 <body class="bg-slate-50 p-2 md:p-8 pb-24 md:pb-8" x-data="protocolApp()" x-init="init()" x-cloak>
 <div x-show="showInstallPrompt" class="fixed bottom-6 left-4 right-4 z-[300] no-print">
@@ -280,25 +255,24 @@
     <template x-if="results">
   <div class="flex flex-col gap-4">
     <div 
-      x-data="{ scale: 0.8 }"
+      x-data="{ scale: 1 }"
       x-init="
         const updateScale = () => {
           if (!$refs.wrapper) return;
-          // Use 856 instead of 816 to give a 20px margin on each side so it's not cut off
-          scale = ($refs.wrapper.clientWidth - 40) / 816;
+          // 816px is the target width. We subtract 60px for padding/breathing room in the well.
+          scale = ($refs.wrapper.clientWidth - 60) / 816;
         };
         setTimeout(updateScale, 100);
         window.addEventListener('resize', updateScale);
         $watch('results', () => setTimeout(updateScale, 100));
       "
       x-ref="wrapper"
-      class="w-full overflow-hidden rounded-2xl border-4 border-slate-400 bg-slate-300 preview-well no-print flex justify-center items-start pt-6"
-      :style="`height: ${(scale * 1056) + 60}px;`" 
+      class="w-full overflow-hidden rounded-3xl border-4 border-slate-400 bg-slate-300 preview-well no-print flex justify-center pt-8 pb-8"
+      :style="`height: ${(scale * 1056) + 120}px;`" 
     >
       <div 
-        x-ref="paper"
         id="print-area" 
-        class="bg-white text-slate-900 flex flex-col shadow-2xl origin-top print:shadow-none"
+        class="bg-white text-slate-900 flex flex-col shadow-2xl origin-top"
         style="width: 816px; height: 1056px; padding: 30px 30px 90px 30px; box-sizing: border-box;" 
         :style="`transform: scale(${scale});`"
       >
@@ -325,16 +299,16 @@
           </div>
         </div>
 
-        <div class="mb-4 p-4 bg-slate-50 border-2 border-slate-200 rounded-xl text-left">
-          <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Identification / Clinical Signs</span>
+        <div class="mb-6 p-5 bg-slate-50 border-2 border-slate-200 rounded-2xl text-left">
+          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Identification / Clinical Signs</span>
           <p class="text-slate-900 font-black text-lg leading-tight" x-text="results['desc_' + outputLang]"></p>
-          <p x-show="outputLang !== 'EN'" class="text-slate-500 italic text-[10pt] border-t-2 border-slate-200 mt-2 pt-2">
-            <span class="font-bold uppercase text-[8px] mr-1 text-slate-400">English Reference:</span><span x-text="results.desc_EN"></span>
+          <p x-show="outputLang !== 'EN'" class="text-slate-500 italic text-sm border-t-2 border-slate-200 mt-3 pt-3">
+            <span class="font-bold uppercase text-[9px] mr-1 text-slate-400">English Reference:</span><span x-text="results.desc_EN"></span>
           </p>
         </div>
 
-        <table class="w-full mb-6 border-collapse">
-          <thead class="bg-slate-900 text-white text-[9px] uppercase font-black text-left">
+        <table class="w-full mb-8 border-collapse">
+          <thead class="bg-slate-900 text-white text-[10px] uppercase font-black text-left">
             <tr>
               <th class="p-3 pl-4">Medication</th>
               <th class="p-3" x-text="dictionary[outputLang].volume"></th>
@@ -346,30 +320,30 @@
           <tbody class="text-left">
             <template x-for="t in results.treatments">
               <tr class="border-b-2 border-slate-100">
-                <td class="p-3 pl-4 text-base font-black" x-text="t.drug"></td>
-                <td class="p-3 text-2xl font-black text-blue-900" x-text="t.displayAmount"></td>
-                <td class="p-3 text-sm font-bold uppercase" x-text="t.route || 'N/A'"></td>
-                <td class="p-3 text-sm font-bold" x-text="t.freq"></td>
-                <td class="p-3 text-sm font-black text-right pr-4" x-text="t.dur + ' ' + dictionary[outputLang].days"></td>
+                <td class="p-4 pl-4 text-base font-black" x-text="t.drug"></td>
+                <td class="p-4 text-2xl font-black text-blue-900" x-text="t.displayAmount"></td>
+                <td class="p-4 text-sm font-bold uppercase" x-text="t.route || 'N/A'"></td>
+                <td class="p-4 text-sm font-bold" x-text="t.freq"></td>
+                <td class="p-4 text-sm font-black text-right pr-4" x-text="t.dur + ' ' + dictionary[outputLang].days"></td>
               </tr>
             </template>
           </tbody>
         </table>
 
         <div class="mt-auto">
-          <div class="bg-red-50 border-4 border-red-600 p-6 rounded-2xl mb-8">
+          <div class="bg-red-50 border-4 border-red-600 p-6 rounded-3xl mb-8">
             <h3 class="text-sm font-black text-red-700 text-center uppercase mb-4 tracking-widest" x-text="dictionary[outputLang].withdrawalHeader"></h3>
             <div class="grid gap-6" :class="showMilkWD() ? 'grid-cols-2' : 'grid-cols-1'">
-              <div class="flex items-center justify-between bg-white px-6 py-4 border-2 border-red-200 rounded-xl shadow-sm">
+              <div class="flex items-center justify-between bg-white px-6 py-4 border-2 border-red-200 rounded-2xl shadow-sm">
                 <div class="text-left">
-                  <label class="block text-[10px] font-black text-red-900 uppercase" x-text="dictionary[outputLang].meat"></label>
+                  <label class="block text-[10px] font-black text-red-900 uppercase leading-none" x-text="dictionary[outputLang].meat"></label>
                   <p class="text-[10px] font-bold text-red-400 uppercase mt-1" x-text="dictionary[outputLang].days"></p>
                 </div>
                 <p class="text-5xl font-black text-red-600" x-text="results.meatMax"></p>
               </div>
-              <div x-show="showMilkWD()" class="flex items-center justify-between bg-white px-6 py-4 border-2 border-red-200 rounded-xl shadow-sm">
+              <div x-show="showMilkWD()" class="flex items-center justify-between bg-white px-6 py-4 border-2 border-red-200 rounded-2xl shadow-sm">
                 <div class="text-left">
-                  <label class="block text-[10px] font-black text-red-900 uppercase" x-text="dictionary[outputLang].milk"></label>
+                  <label class="block text-[10px] font-black text-red-900 uppercase leading-none" x-text="dictionary[outputLang].milk"></label>
                   <p class="text-[10px] font-bold text-red-400 uppercase mt-1" x-text="dictionary[outputLang].days"></p>
                 </div>
                 <p class="text-5xl font-black text-red-600" x-text="results.milkMax"></p>
@@ -378,14 +352,12 @@
           </div>
           
           <div class="flex justify-between border-t-4 border-slate-900 pt-8">
-            <div class="w-5/12 border-b-2 border-slate-400 pb-2 text-[9px] font-black text-slate-400 uppercase text-left">Prescribing Veterinarian Signature</div>
-            <div class="w-5/12 border-b-2 border-slate-400 pb-2 text-[9px] font-black text-slate-400 uppercase text-left">Farm Manager Signature</div>
+            <div class="w-5/12 border-b-2 border-slate-400 pb-2 text-[10px] font-black text-slate-400 uppercase text-left">Prescribing Veterinarian Signature</div>
+            <div class="w-5/12 border-b-2 border-slate-400 pb-2 text-[10px] font-black text-slate-400 uppercase text-left">Farm Manager Signature</div>
           </div>
         </div>
-        </div>
-    </div>
-
-    <button @click="window.print();" 
+        
+      </div> </div> <button @click="window.print();" 
         class="no-print w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black py-5 rounded-2xl uppercase tracking-widest shadow-xl active:scale-95 transition-all">
       Authorize & Print Protocol
     </button>
@@ -1007,6 +979,7 @@ function protocolApp() {
 </body>
 
 </html>
+
 
 
 
