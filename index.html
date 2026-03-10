@@ -188,7 +188,7 @@
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
         </template>
-        <span x-text="syncStatus === 'syncing' ? 'Authorizing...' : 'Enter Clinic Vault'"></span>
+        <span x-text="syncStatus === 'syncing' ? 'Authorizing...' : 'Enter Protocol Builder'"></span>
       </button>
 
       <p class="text-[10px] text-slate-400 text-center uppercase font-bold leading-relaxed px-4">
@@ -197,10 +197,6 @@
     </form>
   </div>
 </div>
-  
-  <p class="mt-8 text-slate-400 text-[10px] font-bold uppercase tracking-widest">
-    Powered by HerdLink API v3.1
-  </p>
 </div>
 <div x-show="view !== 'login'" x-cloak>
 
@@ -255,10 +251,10 @@
             <template x-for="type in productionTypes"><option :value="type" x-text="type"></option></template>
           </select>
         </div>
-        <div><label class="text-[10px] font-black text-slate-400 uppercase">Farm</label><select x-model="f" @change="updateGroups()" class="w-full border-2 p-3 rounded-xl font-bold bg-slate-50"><option value="">Select Farm...</option><template x-for="farm in farms"><option :value="farm" x-text="farm"></option></template></select></div>
-        <div><label class="text-[10px] font-black text-slate-400 uppercase">Group</label><select x-model="g" :disabled="!f" @change="updateDiseases()" class="w-full border-2 p-3 rounded-xl font-bold bg-slate-50"><option value="">Select...</option><template x-for="group in filteredGroups"><option :value="group" x-text="group"></option></template></select></div>
-        <div><label class="text-[10px] font-black text-slate-400 uppercase">Condition</label><select x-model="d" :disabled="!g" @change="updateSeverities()" class="w-full border-2 p-3 rounded-xl font-bold bg-slate-50"><option value="">Select...</option><template x-for="dis in filteredDiseases"><option :value="dis" x-text="dis"></option></template></select></div>
-        <div><label class="text-[10px] font-black text-slate-400 uppercase">Protocol</label><select x-model="s" :disabled="!d" class="w-full border-2 p-3 rounded-xl font-bold bg-slate-50"><option value="">Select...</option><template x-for="sev in filteredSeverities"><option :value="sev" x-text="sev"></option></template></select></div>
+        <div><label class="text-[10px] font-black text-slate-400 uppercase">Farm</label><select x-model="f" @change="updateGroups()" class="w-full border-2 p-3 rounded-xl font-bold bg-slate-50"><option value="">Select Farm...</option><template x-for="farm in (farms || [])"><option :value="farm" x-text="farm"></option></template></select></div>
+        <div><label class="text-[10px] font-black text-slate-400 uppercase">Group</label><select x-model="g" :disabled="!f" @change="updateDiseases()" class="w-full border-2 p-3 rounded-xl font-bold bg-slate-50"><option value="">Select...</option><template x-for="group in (filteredGroups || [])"><option :value="group" x-text="group"></option></template></select></div>
+        <div><label class="text-[10px] font-black text-slate-400 uppercase">Condition</label><select x-model="d" :disabled="!g" @change="updateSeverities()" class="w-full border-2 p-3 rounded-xl font-bold bg-slate-50"><option value="">Select...</option><template x-for="dis in (filteredDiseases || [])"><option :value="dis" x-text="dis"></option></template></select></div>
+        <div><label class="text-[10px] font-black text-slate-400 uppercase">Protocol</label><select x-model="s" :disabled="!d" class="w-full border-2 p-3 rounded-xl font-bold bg-slate-50"><option value="">Select...</option><template x-for="sev in (filteredSeverities || [])"><option :value="sev" x-text="sev"></option></template></select></div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-xl border border-slate-200 mb-6">
@@ -281,10 +277,18 @@
       </div>
 
       <button @click="generate()" 
-              :disabled="!productionType || !s || (doseType === 'animal' && !weight)" 
-              class="w-full bg-slate-900 text-white font-black py-4 rounded-xl uppercase tracking-widest disabled:opacity-20 transition-all shadow-lg active:scale-[0.97] touch-manipulation">
-        Generate Bilingual Sheet
-      </button>
+        :disabled="!productionType || !s || (doseType === 'animal' && !weight)" 
+        class="w-full bg-slate-900 text-white font-black py-4 rounded-xl uppercase tracking-widest disabled:opacity-20 transition-all shadow-lg active:scale-[0.97] touch-manipulation">
+  
+  <span x-show="!productionType">Select Production Type</span>
+  <span x-show="productionType && !f">Select Farm</span>
+  <span x-show="f && !g">Select Group</span>
+  <span x-show="g && !d">Select Condition</span>
+  <span x-show="d && !s">Select Protocol</span>
+  <span x-show="s && doseType === 'animal' && !weight">Enter Animal Weight</span>
+  <span x-show="productionType && s && (doseType !== 'animal' || weight)">Generate Protocol Sheet</span>
+
+</button>
     </div>
 
     <template x-if="results">
@@ -1016,6 +1020,7 @@ function protocolApp() {
 </body>
 
 </html>
+
 
 
 
