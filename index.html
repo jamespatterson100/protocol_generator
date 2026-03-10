@@ -258,10 +258,11 @@
     <select x-model="outputLang" @change="results = null" class="border-2 p-1.5 rounded-lg text-xs font-bold bg-white outline-none focus:border-blue-500 cursor-pointer">
       <option value="EN">English</option>
       <option value="ES">Español / EN</option>
-      </select>
+      <option value="FIL">Filipino / EN</option>
+      <option value="PA">ਪੰਜਾਬੀ (Punjabi) / EN</option>
+    </select>
   </div>
 </div>
-      </div>
 
       <button @click="generate()" 
         :disabled="!productionType || !s || (doseType === 'animal' && !weight)" 
@@ -1072,6 +1073,7 @@ function protocolApp() {
 </body>
 
 </html>
+
 
 
 
