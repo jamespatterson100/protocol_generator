@@ -31,36 +31,41 @@
       .responsive-row { background: #f8fafc; margin-bottom: 1rem; padding: 1.25rem; border-radius: 1.25rem; border: 1px solid #e2e8f0; }
     }
 
-    /* PROFESSIONAL PRINT RULES */
     @media print {
-      @page { size: letter; margin: 0; }
-      body * { visibility: hidden !important; }
-      #print-area, #print-area * { visibility: visible !important; }
-      #print-area {
-        position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 8.5in !important;
-        height: 11in !important;
-        padding: 30px 30px 90px 30px !important;
-        margin: 0 !important;
-        transform: scale(1) !important; /* Force scale 1 for actual print */
-        transform-origin: top left !important;
-        box-shadow: none !important;
-        border: none !important;
-        background-color: white !important;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-      }
-      .no-print { display: none !important; }
+    /* This defines the physical paper size and your custom margins */
+    @page {
+      size: letter;
+      margin: 30px 30px 90px 30px; 
     }
 
-    /* PREVIEW CONTAINER */
-    .preview-well {
-      background-image: radial-gradient(#94a3b8 1px, transparent 1px);
-      background-size: 20px 20px;
-      min-height: 400px;
+    /* Hide the browser UI elements (URL, Date) */
+    body {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
     }
+
+    body * {
+      visibility: hidden;
+    }
+
+    #print-area, #print-area * {
+      visibility: visible;
+    }
+
+    #print-area {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100% !important; /* Fills the margins defined in @page */
+      transform: none !important; /* Removes the screen scale */
+      box-shadow: none !important;
+      padding: 0 !important; /* Padding is handled by @page margin */
+    }
+
+    .no-print {
+      display: none !important;
+    }
+  }
 </style>
 </head>
 <body class="bg-slate-50 p-2 md:p-8 pb-24 md:pb-8" x-data="protocolApp()" x-init="init()" x-cloak>
@@ -1020,6 +1025,7 @@ function protocolApp() {
 </body>
 
 </html>
+
 
 
 
