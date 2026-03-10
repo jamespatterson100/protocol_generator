@@ -284,9 +284,7 @@
       x-init="
         const updateScale = () => {
           if (!$refs.wrapper || !$refs.paper) return;
-          // Scale based on an 816px standard document width
           scale = Math.min(1, $refs.wrapper.clientWidth / 816);
-          // Force the preview to show the full 11-inch height behavior
           docHeight = 1056; 
         };
         setTimeout(updateScale, 50);
@@ -329,7 +327,9 @@
         </div>
 
         <div class="mb-4 p-4 bg-slate-50 border border-slate-200 rounded-xl text-left">
-          <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Identification / Clinical Signs</span>
+          <span class="text-[10px] font-black text-slate-700 uppercase tracking-widest block" x-text="dictionary[outputLang].clinicalSigns"></span>
+          <span x-show="outputLang !== 'EN'" class="text-[8px] font-bold text-slate-400 uppercase tracking-widest block mb-2" x-text="dictionary['EN'].clinicalSigns"></span>
+          
           <p class="text-slate-900 font-black text-lg leading-tight" x-text="results['desc_' + outputLang]"></p>
           <p x-show="outputLang !== 'EN'" class="text-slate-500 italic text-[10pt] border-t border-slate-200 mt-2 pt-2">
             <span class="font-bold uppercase text-[8px] mr-1 text-slate-400">EN Reference:</span><span x-text="results.desc_EN"></span>
@@ -337,13 +337,28 @@
         </div>
 
         <table class="w-full mb-6 border-collapse">
-          <thead class="bg-slate-900 text-white text-[8px] uppercase font-black text-left">
+          <thead class="bg-slate-900 text-white text-[10px] uppercase font-black text-left">
             <tr>
-              <th class="p-2 pl-3">Medication</th>
-              <th class="p-2" x-text="dictionary[outputLang].volume"></th>
-              <th class="p-2">Route</th>
-              <th class="p-2">Freq</th>
-              <th class="p-2 text-right pr-3">Duration</th>
+              <th class="p-2 pl-3">
+                <div x-text="dictionary[outputLang].medication"></div>
+                <div x-show="outputLang !== 'EN'" class="text-[7px] text-slate-400 mt-0.5" x-text="dictionary['EN'].medication"></div>
+              </th>
+              <th class="p-2">
+                <div x-text="dictionary[outputLang].volume"></div>
+                <div x-show="outputLang !== 'EN'" class="text-[7px] text-slate-400 mt-0.5" x-text="dictionary['EN'].volume"></div>
+              </th>
+              <th class="p-2">
+                <div x-text="dictionary[outputLang].route"></div>
+                <div x-show="outputLang !== 'EN'" class="text-[7px] text-slate-400 mt-0.5" x-text="dictionary['EN'].route"></div>
+              </th>
+              <th class="p-2">
+                <div x-text="dictionary[outputLang].freq"></div>
+                <div x-show="outputLang !== 'EN'" class="text-[7px] text-slate-400 mt-0.5" x-text="dictionary['EN'].freq"></div>
+              </th>
+              <th class="p-2 text-right pr-3">
+                <div x-text="dictionary[outputLang].duration"></div>
+                <div x-show="outputLang !== 'EN'" class="text-[7px] text-slate-400 mt-0.5" x-text="dictionary['EN'].duration"></div>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -351,9 +366,14 @@
               <tr class="border-b border-slate-100">
                 <td class="p-2 pl-3 text-sm font-black" x-text="t.drug"></td>
                 <td class="p-2 text-xl font-black text-blue-900" x-text="t.displayAmount"></td>
-                <td class="p-2 text-sm font-bold uppercase" x-text="t.route || 'N/A'"></td>
+                <td class="p-2 text-xs font-bold uppercase">
+                  <span x-text="dictionary[outputLang].routes[t.route] || t.route || 'N/A'"></span>
+                  <div x-show="outputLang !== 'EN'" class="text-[9px] text-slate-400 mt-0.5" x-text="dictionary['EN'].routes[t.route] || t.route"></div>
+                </td>
                 <td class="p-2 text-sm font-bold" x-text="t.freq"></td>
-                <td class="p-2 text-sm font-black text-right pr-3" x-text="t.dur + ' ' + dictionary[outputLang].days"></td>
+                <td class="p-2 text-sm font-black text-right pr-3">
+                  <span x-text="t.dur"></span> <span class="text-xs" x-text="dictionary[outputLang].days"></span>
+                </td>
               </tr>
             </template>
           </tbody>
@@ -361,22 +381,41 @@
 
         <div class="mt-auto w-full">
           <div class="bg-red-50 border-2 border-red-600 p-4 rounded-xl mb-6">
-            <h3 class="text-xs font-black text-red-700 text-center uppercase mb-3 tracking-widest" x-text="dictionary[outputLang].withdrawalHeader"></h3>
+            <h3 class="text-sm font-black text-red-700 text-center uppercase mb-3 tracking-widest">
+              <div x-text="dictionary[outputLang].withdrawalHeader"></div>
+              <div x-show="outputLang !== 'EN'" class="text-[9px] text-red-400 mt-0.5" x-text="dictionary['EN'].withdrawalHeader"></div>
+            </h3>
+            
             <div class="grid gap-4" :class="showMilkWD() ? 'grid-cols-2' : 'grid-cols-1'">
               <div class="flex items-center justify-between bg-white px-4 py-2 border border-red-200 rounded-lg shadow-sm">
-                <div class="text-left"><label class="block text-[8px] font-black text-red-900 uppercase" x-text="dictionary[outputLang].meat"></label><p class="text-[9px] font-bold text-red-400 uppercase" x-text="dictionary[outputLang].days"></p></div>
+                <div class="text-left">
+                  <label class="block text-[10px] font-black text-red-900 uppercase" x-text="dictionary[outputLang].meat"></label>
+                  <label x-show="outputLang !== 'EN'" class="block text-[7px] font-bold text-red-400 uppercase leading-none mb-1" x-text="dictionary['EN'].meat"></label>
+                  <p class="text-[9px] font-bold text-red-400 uppercase mt-1" x-text="dictionary[outputLang].days"></p>
+                </div>
                 <p class="text-4xl font-black text-red-600" x-text="results.meatMax"></p>
               </div>
+              
               <div x-show="showMilkWD()" class="flex items-center justify-between bg-white px-4 py-2 border border-red-200 rounded-lg shadow-sm">
-                <div class="text-left"><label class="block text-[8px] font-black text-red-900 uppercase" x-text="dictionary[outputLang].milk"></label><p class="text-[9px] font-bold text-red-400 uppercase" x-text="dictionary[outputLang].days"></p></div>
+                <div class="text-left">
+                  <label class="block text-[10px] font-black text-red-900 uppercase" x-text="dictionary[outputLang].milk"></label>
+                  <label x-show="outputLang !== 'EN'" class="block text-[7px] font-bold text-red-400 uppercase leading-none mb-1" x-text="dictionary['EN'].milk"></label>
+                  <p class="text-[9px] font-bold text-red-400 uppercase mt-1" x-text="dictionary[outputLang].days"></p>
+                </div>
                 <p class="text-4xl font-black text-red-600" x-text="results.milkMax"></p>
               </div>
             </div>
           </div>
           
           <div class="flex justify-between border-t border-slate-200 pt-4">
-            <div class="w-1/3 border-b border-slate-400 pb-1 text-[8px] font-black text-slate-400 uppercase">Prescribing Veterinarian</div>
-            <div class="w-1/3 border-b border-slate-400 pb-1 text-[8px] font-black text-slate-400 uppercase">Farm Manager / Caretaker</div>
+            <div class="w-1/3 border-b border-slate-400 pb-1 text-left">
+              <span class="text-[10px] font-black text-slate-700 uppercase" x-text="dictionary[outputLang].prescribingVet"></span>
+              <span x-show="outputLang !== 'EN'" class="block text-[7px] font-bold text-slate-400 uppercase" x-text="dictionary['EN'].prescribingVet"></span>
+            </div>
+            <div class="w-1/3 border-b border-slate-400 pb-1 text-left">
+              <span class="text-[10px] font-black text-slate-700 uppercase" x-text="dictionary[outputLang].farmManager"></span>
+              <span x-show="outputLang !== 'EN'" class="block text-[7px] font-bold text-slate-400 uppercase" x-text="dictionary['EN'].farmManager"></span>
+            </div>
           </div>
         </div>
         
@@ -677,11 +716,35 @@ function protocolApp() {
     },
 
     dictionary: {
-      EN: { volume: "Amount", days: "DAYS", withdrawalHeader: "MANDATORY WITHDRAWAL", meat: "Meat Withdrawal", milk: "Milk Withdrawal" },
-      ES: { volume: "Cantidad", days: "DÍAS", withdrawalHeader: "RETIRO OBLIGATORIO", meat: "Retiro de Carne", milk: "Retiro de Leche" },
-      PH: { volume: "Dami", days: "ARAW", withdrawalHeader: "PANAHON NG PAG-ALIS", meat: "Pag-alis ng Karne", milk: "Pag-alis ng Gatas" },
-      PB: { volume: "ਮਾਤਰਾ", days: "ਦਿਨ", withdrawalHeader: "ਲਾਜ਼ਮੀ ਨਿਕਾਸੀ ਸਮਾਂ", meat: "ਮੀਟ ਦੀ ਨਿਕਾਸੀ", milk: "ਦੁੱਧ ਦੀ ਨਿਕਾਸੀ" }
-    },
+  EN: {
+    medication: "Medication", volume: "Volume / Dose", route: "Route", freq: "Freq", duration: "Duration",
+    days: "Days", withdrawalHeader: "Mandatory Withdrawal Period", meat: "Meat", milk: "Milk",
+    clinicalSigns: "Identification / Clinical Signs", prescribingVet: "Prescribing Veterinarian",
+    farmManager: "Farm Manager / Caretaker",
+    routes: { "IM": "IM (Intramuscular)", "SC": "SC (Subcutaneous)", "IV": "IV (Intravenous)", "PO": "PO (Oral)", "IMM": "IMM (Intramammary)" }
+  },
+  ES: {
+    medication: "Medicación", volume: "Volumen / Dosis", route: "Vía", freq: "Frecuencia", duration: "Duración",
+    days: "Días", withdrawalHeader: "Período de Retiro Obligatorio", meat: "Carne", milk: "Leche",
+    clinicalSigns: "Identificación / Signos Clínicos", prescribingVet: "Veterinario Prescriptor",
+    farmManager: "Gerente de Granja / Cuidador",
+    routes: { "IM": "IM (Intramuscular)", "SC": "SC (Subcutánea)", "IV": "IV (Intravenosa)", "PO": "PO (Oral)", "IMM": "IMM (Intramamaria)" }
+  },
+  FIL: {
+    medication: "Gamot", volume: "Dami / Dosis", route: "Paraan", freq: "Dalas", duration: "Tagal",
+    days: "Mga Araw", withdrawalHeader: "Kinakailangang Panahon ng Pag-withdraw", meat: "Karne", milk: "Gatas",
+    clinicalSigns: "Pagkakakilanlan / Mga Sintomas", prescribingVet: "Nagreseta na Beterinaryo",
+    farmManager: "Tagapamahala ng Bukid",
+    routes: { "IM": "IM (Sa Kalamnan)", "SC": "SC (Sa Ilalim ng Balat)", "IV": "IV (Sa Ugat)", "PO": "PO (Sa Bibig)", "IMM": "IMM (Sa Suso)" }
+  },
+  PA: {
+    medication: "ਦਵਾਈ", volume: "ਖੁਰਾਕ", route: "ਰੂਟ", freq: "ਬਾਰੰਬਾਰਤਾ", duration: "ਮਿਆਦ",
+    days: "ਦਿਨ", withdrawalHeader: "ਲਾਜ਼ਮੀ ਵਾਪਸੀ ਦਾ ਸਮਾਂ", meat: "ਮੀਟ", milk: "ਦੁੱਧ",
+    clinicalSigns: "ਪਛਾਣ / ਕਲੀਨਿਕਲ ਚਿੰਨ੍ਹ", prescribingVet: "ਤਜਵੀਜ਼ ਕਰਨ ਵਾਲਾ ਡਾਕਟਰ",
+    farmManager: "ਫਾਰਮ ਮੈਨੇਜਰ / ਦੇਖਭਾਲ ਕਰਨ ਵਾਲਾ",
+    routes: { "IM": "IM (ਮਾਸਪੇਸ਼ੀ ਵਿੱਚ)", "SC": "SC (ਚਮੜੀ ਦੇ ਹੇਠਾਂ)", "IV": "IV (ਨਸ ਵਿੱਚ)", "PO": "PO (ਮੂੰਹ ਰਾਹੀਂ)", "IMM": "IMM (ਲੇਵੇ ਵਿੱਚ)" }
+  }
+}
 
     // --- SECURE API BRIDGE ---
     async callAPI(action, extraPayload = {}) {
@@ -1009,6 +1072,7 @@ function protocolApp() {
 </body>
 
 </html>
+
 
 
 
