@@ -727,6 +727,10 @@ function protocolApp() {
 
     // --- INITIALIZATION ---
     async init() {
+      // CLEAR OLD RESULTS ON RELOAD
+      this.results = null; 
+      this.f = ''; this.g = ''; this.d = ''; this.s = '';
+      
       // 1. Gatekeeper Check
       if (!this.token) {
         this.view = 'login';
@@ -1016,6 +1020,7 @@ function protocolApp() {
 </body>
 
 </html>
+
 
 
 
