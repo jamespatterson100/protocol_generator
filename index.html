@@ -259,20 +259,18 @@
       x-init="
         const updateScale = () => {
           if (!$refs.wrapper) return;
-          // Scale based on the standard 816px Letter width
-          // We subtract 40px to leave a small grey margin inside the well
+          // Standard Letter Width is 816px. 
+          // We scale the 816px document to fit the current width of the grey well.
           scale = ($refs.wrapper.clientWidth - 40) / 816;
         };
-        setTimeout(updateScale, 100);
+        updateScale();
         window.addEventListener('resize', updateScale);
-        $watch('results', () => setTimeout(updateScale, 100));
       "
       x-ref="wrapper"
       class="w-full overflow-hidden rounded-3xl border-4 border-slate-400 bg-slate-300 preview-well no-print flex justify-center items-start pt-6"
-      :style="`height: ${(scale * 1056) + 60}px;`" 
+      :style="`height: ${(scale * 1056) + 80}px;`" 
     >
       <div 
-        x-ref="paper"
         id="print-area" 
         class="bg-white text-slate-900 flex flex-col shadow-2xl origin-top print:shadow-none"
         style="width: 816px; height: 1056px; padding: 30px 30px 90px 30px; box-sizing: border-box;" 
@@ -301,32 +299,29 @@
           </div>
         </div>
 
-        <div class="mb-6 p-5 bg-slate-50 border-2 border-slate-200 rounded-2xl text-left">
-          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Identification / Clinical Signs</span>
+        <div class="mb-6 p-5 bg-slate-50 border-2 border-slate-200 rounded-xl text-left">
+          <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Identification / Clinical Signs</span>
           <p class="text-slate-900 font-black text-lg leading-tight" x-text="results['desc_' + outputLang]"></p>
-          <p x-show="outputLang !== 'EN'" class="text-slate-500 italic text-sm border-t-2 border-slate-200 mt-3 pt-3">
-            <span class="font-bold uppercase text-[9px] mr-1 text-slate-400">English Reference:</span><span x-text="results.desc_EN"></span>
-          </p>
         </div>
 
         <table class="w-full mb-8 border-collapse">
           <thead class="bg-slate-900 text-white text-[10px] uppercase font-black text-left">
             <tr>
-              <th class="p-4 pl-5">Medication</th>
-              <th class="p-4" x-text="dictionary[outputLang].volume"></th>
-              <th class="p-4">Route</th>
-              <th class="p-4">Frequency</th>
-              <th class="p-4 text-right pr-5">Duration</th>
+              <th class="p-3 pl-4">Medication</th>
+              <th class="p-3">Amount</th>
+              <th class="p-3">Route</th>
+              <th class="p-3">Freq.</th>
+              <th class="p-3 text-right pr-4">Duration</th>
             </tr>
           </thead>
           <tbody class="text-left">
             <template x-for="t in results.treatments">
               <tr class="border-b-2 border-slate-100">
-                <td class="p-4 pl-5 text-base font-black" x-text="t.drug"></td>
-                <td class="p-4 text-2xl font-black text-blue-900" x-text="t.displayAmount"></td>
-                <td class="p-4 text-sm font-bold uppercase" x-text="t.route || 'N/A'"></td>
-                <td class="p-4 text-sm font-bold" x-text="t.freq"></td>
-                <td class="p-4 text-sm font-black text-right pr-5" x-text="t.dur + ' ' + dictionary[outputLang].days"></td>
+                <td class="p-3 pl-4 text-base font-black" x-text="t.drug"></td>
+                <td class="p-3 text-2xl font-black text-blue-900" x-text="t.displayAmount"></td>
+                <td class="p-3 text-sm font-bold uppercase" x-text="t.route || 'N/A'"></td>
+                <td class="p-3 text-sm font-bold" x-text="t.freq"></td>
+                <td class="p-3 text-sm font-black text-right pr-4" x-text="t.dur + ' ' + dictionary[outputLang].days"></td>
               </tr>
             </template>
           </tbody>
@@ -334,19 +329,19 @@
 
         <div class="mt-auto">
           <div class="bg-red-50 border-4 border-red-600 p-6 rounded-3xl mb-8">
-            <h3 class="text-sm font-black text-red-700 text-center uppercase mb-4 tracking-widest" x-text="dictionary[outputLang].withdrawalHeader"></h3>
+            <h3 class="text-xs font-black text-red-700 text-center uppercase mb-3 tracking-widest" x-text="dictionary[outputLang].withdrawalHeader"></h3>
             <div class="grid gap-6" :class="showMilkWD() ? 'grid-cols-2' : 'grid-cols-1'">
-              <div class="flex items-center justify-between bg-white px-6 py-4 border-2 border-red-200 rounded-2xl shadow-sm">
+              <div class="flex items-center justify-between bg-white px-6 py-4 border-2 border-red-200 rounded-xl">
                 <div class="text-left">
-                  <label class="block text-[10px] font-black text-red-900 uppercase leading-none" x-text="dictionary[outputLang].meat"></label>
-                  <p class="text-[10px] font-bold text-red-400 uppercase mt-1" x-text="dictionary[outputLang].days"></p>
+                  <label class="block text-[10px] font-black text-red-900 uppercase" x-text="dictionary[outputLang].meat"></label>
+                  <p class="text-[10px] font-bold text-red-400 uppercase mt-0.5" x-text="dictionary[outputLang].days"></p>
                 </div>
                 <p class="text-5xl font-black text-red-600" x-text="results.meatMax"></p>
               </div>
-              <div x-show="showMilkWD()" class="flex items-center justify-between bg-white px-6 py-4 border-2 border-red-200 rounded-xl shadow-sm">
+              <div x-show="showMilkWD()" class="flex items-center justify-between bg-white px-6 py-4 border-2 border-red-200 rounded-xl">
                 <div class="text-left">
-                  <label class="block text-[10px] font-black text-red-900 uppercase leading-none" x-text="dictionary[outputLang].milk"></label>
-                  <p class="text-[10px] font-bold text-red-400 uppercase mt-1" x-text="dictionary[outputLang].days"></p>
+                  <label class="block text-[10px] font-black text-red-900 uppercase" x-text="dictionary[outputLang].milk"></label>
+                  <p class="text-[10px] font-bold text-red-400 uppercase mt-0.5" x-text="dictionary[outputLang].days"></p>
                 </div>
                 <p class="text-5xl font-black text-red-600" x-text="results.milkMax"></p>
               </div>
@@ -362,7 +357,7 @@
     </div>
 
     <button @click="window.print();" 
-        class="no-print w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black py-5 rounded-2xl uppercase tracking-widest shadow-xl active:scale-95 transition-all">
+        class="no-print w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black py-5 rounded-xl uppercase tracking-widest shadow-xl active:scale-95 transition-all">
       Authorize & Print Protocol
     </button>
   </div>
@@ -1021,6 +1016,7 @@ function protocolApp() {
 </body>
 
 </html>
+
 
 
 
