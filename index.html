@@ -284,21 +284,21 @@
       x-init="
         const updateScale = () => {
           if (!$refs.wrapper) return;
-          // Calculate scale based on the 816px width of a Letter sheet
-          scale = $refs.wrapper.clientWidth / 816;
+          // Use 856 instead of 816 to give a 20px margin on each side so it's not cut off
+          scale = ($refs.wrapper.clientWidth - 40) / 816;
         };
         setTimeout(updateScale, 100);
         window.addEventListener('resize', updateScale);
         $watch('results', () => setTimeout(updateScale, 100));
       "
       x-ref="wrapper"
-      class="w-full overflow-hidden rounded-2xl border-4 border-slate-400 bg-slate-300 preview-container no-print"
-      :style="`height: ${scale * 1056}px;`" 
+      class="w-full overflow-hidden rounded-2xl border-4 border-slate-400 bg-slate-300 preview-well no-print flex justify-center items-start pt-6"
+      :style="`height: ${(scale * 1056) + 60}px;`" 
     >
       <div 
         x-ref="paper"
         id="print-area" 
-        class="bg-white text-slate-900 flex flex-col shadow-2xl origin-top-left print:shadow-none"
+        class="bg-white text-slate-900 flex flex-col shadow-2xl origin-top print:shadow-none"
         style="width: 816px; height: 1056px; padding: 30px 30px 90px 30px; box-sizing: border-box;" 
         :style="`transform: scale(${scale});`"
       >
@@ -329,7 +329,7 @@
           <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Identification / Clinical Signs</span>
           <p class="text-slate-900 font-black text-lg leading-tight" x-text="results['desc_' + outputLang]"></p>
           <p x-show="outputLang !== 'EN'" class="text-slate-500 italic text-[10pt] border-t-2 border-slate-200 mt-2 pt-2">
-            <span class="font-bold uppercase text-[8px] mr-1 text-slate-400 tracking-tighter">English Reference:</span><span x-text="results.desc_EN"></span>
+            <span class="font-bold uppercase text-[8px] mr-1 text-slate-400">English Reference:</span><span x-text="results.desc_EN"></span>
           </p>
         </div>
 
@@ -362,14 +362,14 @@
             <div class="grid gap-6" :class="showMilkWD() ? 'grid-cols-2' : 'grid-cols-1'">
               <div class="flex items-center justify-between bg-white px-6 py-4 border-2 border-red-200 rounded-xl shadow-sm">
                 <div class="text-left">
-                  <label class="block text-[10px] font-black text-red-900 uppercase leading-none" x-text="dictionary[outputLang].meat"></label>
+                  <label class="block text-[10px] font-black text-red-900 uppercase" x-text="dictionary[outputLang].meat"></label>
                   <p class="text-[10px] font-bold text-red-400 uppercase mt-1" x-text="dictionary[outputLang].days"></p>
                 </div>
                 <p class="text-5xl font-black text-red-600" x-text="results.meatMax"></p>
               </div>
               <div x-show="showMilkWD()" class="flex items-center justify-between bg-white px-6 py-4 border-2 border-red-200 rounded-xl shadow-sm">
                 <div class="text-left">
-                  <label class="block text-[10px] font-black text-red-900 uppercase leading-none" x-text="dictionary[outputLang].milk"></label>
+                  <label class="block text-[10px] font-black text-red-900 uppercase" x-text="dictionary[outputLang].milk"></label>
                   <p class="text-[10px] font-bold text-red-400 uppercase mt-1" x-text="dictionary[outputLang].days"></p>
                 </div>
                 <p class="text-5xl font-black text-red-600" x-text="results.milkMax"></p>
@@ -382,7 +382,7 @@
             <div class="w-5/12 border-b-2 border-slate-400 pb-2 text-[9px] font-black text-slate-400 uppercase text-left">Farm Manager Signature</div>
           </div>
         </div>
-      </div>
+        </div>
     </div>
 
     <button @click="window.print();" 
@@ -1007,6 +1007,7 @@ function protocolApp() {
 </body>
 
 </html>
+
 
 
 
