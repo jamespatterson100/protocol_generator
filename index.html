@@ -31,40 +31,39 @@
       .responsive-row { background: #f8fafc; margin-bottom: 1rem; padding: 1.25rem; border-radius: 1.25rem; border: 1px solid #e2e8f0; }
     }
 
-    @media print {
-    /* This defines the physical paper size and your custom margins */
+   @media print {
+    /* 1. Kills the browser URL, Page Numbers, and Timestamps */
     @page {
       size: letter;
-      margin: 30px 30px 90px 30px; 
+      margin: 0 !important; 
     }
 
-    /* Hide the browser UI elements (URL, Date) */
     body {
+      margin: 0 !important;
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
     }
 
-    body * {
-      visibility: hidden;
-    }
+    body * { visibility: hidden; }
+    #print-area, #print-area * { visibility: visible; }
 
-    #print-area, #print-area * {
-      visibility: visible;
-    }
-
+    /* 2. Forces the exact Letter size and Custom Margins */
     #print-area {
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 100% !important; /* Fills the margins defined in @page */
-      transform: none !important; /* Removes the screen scale */
+      position: absolute !important;
+      left: 0 !important;
+      top: 0 !important;
+      width: 8.5in !important;
+      height: 11in !important; /* Forces the flexbox to span the entire page */
+      padding: 30px 30px 90px 30px !important; /* Your custom print margins */
+      box-sizing: border-box !important;
+      transform: none !important; /* Removes the screen preview scale */
+      display: flex !important;
+      flex-direction: column !important;
       box-shadow: none !important;
-      padding: 0 !important; /* Padding is handled by @page margin */
+      border: none !important;
     }
 
-    .no-print {
-      display: none !important;
-    }
+    .no-print { display: none !important; }
   }
 </style>
 </head>
@@ -990,6 +989,7 @@ function protocolApp() {
 </body>
 
 </html>
+
 
 
 
