@@ -260,7 +260,7 @@
         const updateScale = () => {
           if (!$refs.wrapper) return;
           // CALCULATION FIX: Adjusting scaling logic for the new narrower paper width (571px)
-          scale = ($refs.wrapper.clientWidth - 40) / 571;
+          scale = ($refs.wrapper.clientWidth - 40) / 1200;
         };
         setTimeout(updateScale, 100);
         window.addEventListener('resize', updateScale);
@@ -1020,6 +1020,7 @@ function protocolApp() {
 </body>
 
 </html>
+
 
 
 
