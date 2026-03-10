@@ -259,16 +259,16 @@
       x-init="
         const updateScale = () => {
           if (!$refs.wrapper) return;
-          // 816px is the target width. We subtract 60px for padding/breathing room in the well.
-          scale = ($refs.wrapper.clientWidth - 60) / 816;
+          // Calculate scale based on the actual width of the container minus 40px padding
+          scale = ($refs.wrapper.clientWidth - 40) / 816;
         };
         setTimeout(updateScale, 100);
         window.addEventListener('resize', updateScale);
         $watch('results', () => setTimeout(updateScale, 100));
       "
       x-ref="wrapper"
-      class="w-full overflow-hidden rounded-3xl border-4 border-slate-400 bg-slate-300 preview-well no-print flex justify-center pt-8 pb-8"
-      :style="`height: ${(scale * 1056) + 120}px;`" 
+      class="w-full overflow-hidden rounded-3xl border-4 border-slate-400 bg-slate-300 preview-well no-print flex justify-center items-start pt-5"
+      :style="`height: ${(scale * 1056) + 40}px;`" 
     >
       <div 
         id="print-area" 
@@ -341,7 +341,7 @@
                 </div>
                 <p class="text-5xl font-black text-red-600" x-text="results.meatMax"></p>
               </div>
-              <div x-show="showMilkWD()" class="flex items-center justify-between bg-white px-6 py-4 border-2 border-red-200 rounded-2xl shadow-sm">
+              <div x-show="showMilkWD()" class="flex items-center justify-between bg-white px-6 py-4 border-2 border-red-200 rounded-xl shadow-sm">
                 <div class="text-left">
                   <label class="block text-[10px] font-black text-red-900 uppercase leading-none" x-text="dictionary[outputLang].milk"></label>
                   <p class="text-[10px] font-bold text-red-400 uppercase mt-1" x-text="dictionary[outputLang].days"></p>
@@ -356,8 +356,10 @@
             <div class="w-5/12 border-b-2 border-slate-400 pb-2 text-[10px] font-black text-slate-400 uppercase text-left">Farm Manager Signature</div>
           </div>
         </div>
-        
-      </div> </div> <button @click="window.print();" 
+        </div>
+    </div>
+
+    <button @click="window.print();" 
         class="no-print w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black py-5 rounded-2xl uppercase tracking-widest shadow-xl active:scale-95 transition-all">
       Authorize & Print Protocol
     </button>
@@ -979,6 +981,7 @@ function protocolApp() {
 </body>
 
 </html>
+
 
 
 
