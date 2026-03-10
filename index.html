@@ -260,14 +260,14 @@
   <div class="flex flex-col gap-4 mt-6">
     
     <div 
-      x-data="{ scale: 1, docHeight: 1000 }"
+      x-data="{ scale: 1, docHeight: 1056 }"
       x-init="
         const updateScale = () => {
           if (!$refs.wrapper || !$refs.paper) return;
           // Scale based on an 816px standard document width
           scale = Math.min(1, $refs.wrapper.clientWidth / 816);
-          // Dynamically read the actual height of the document
-          docHeight = $refs.paper.offsetHeight;
+          // Force the preview to show the full 11-inch height behavior
+          docHeight = 1056; 
         };
         setTimeout(updateScale, 50);
         window.addEventListener('resize', updateScale);
@@ -282,7 +282,7 @@
         x-ref="paper"
         id="print-area" 
         class="origin-top-left bg-white text-slate-900 flex flex-col p-8 shadow-sm print:p-0 print:shadow-none"
-        style="width: 816px;" 
+        style="width: 816px; height: 1056px;" 
         :style="`transform: scale(${scale});`"
       >
         
@@ -339,7 +339,7 @@
           </tbody>
         </table>
 
-        <div class="mt-auto">
+        <div class="mt-auto w-full">
           <div class="bg-red-50 border-2 border-red-600 p-4 rounded-xl mb-6">
             <h3 class="text-xs font-black text-red-700 text-center uppercase mb-3 tracking-widest" x-text="dictionary[outputLang].withdrawalHeader"></h3>
             <div class="grid gap-4" :class="showMilkWD() ? 'grid-cols-2' : 'grid-cols-1'">
@@ -354,7 +354,7 @@
             </div>
           </div>
           
-          <div class="flex justify-between border-t border-slate-200 pt-4 mb-4">
+          <div class="flex justify-between border-t border-slate-200 pt-4">
             <div class="w-1/3 border-b border-slate-400 pb-1 text-[8px] font-black text-slate-400 uppercase">Prescribing Veterinarian</div>
             <div class="w-1/3 border-b border-slate-400 pb-1 text-[8px] font-black text-slate-400 uppercase">Farm Manager / Caretaker</div>
           </div>
@@ -989,6 +989,7 @@ function protocolApp() {
 </body>
 
 </html>
+
 
 
 
