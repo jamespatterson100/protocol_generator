@@ -261,15 +261,6 @@
       </select>
   </div>
 </div>
-        <div class="flex items-center gap-4">
-          <div class="flex-1" x-show="doseType === 'animal'" x-transition>
-            <input type="number" x-model.number="weight" placeholder="Animal Weight" class="w-full border-2 p-2 rounded-lg text-sm font-bold bg-white outline-none focus:border-blue-500" inputmode="decimal">
-          </div>
-          <div class="flex bg-white p-1 rounded-lg border ml-auto">
-            <button @click="unitSystem = 'kgs'" :class="unitSystem === 'kgs' ? 'bg-blue-600 text-white' : 'text-slate-400'" class="px-3 py-1 rounded-md text-[10px] font-bold uppercase transition">KGS</button>
-            <button @click="unitSystem = 'lbs'" :class="unitSystem === 'lbs' ? 'bg-blue-600 text-white' : 'text-slate-400'" class="px-3 py-1 rounded-md text-[10px] font-bold uppercase transition">LBS</button>
-          </div>
-        </div>
       </div>
 
       <button @click="generate()" 
@@ -1018,6 +1009,7 @@ function protocolApp() {
 </body>
 
 </html>
+
 
 
 
