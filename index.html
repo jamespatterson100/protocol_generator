@@ -280,7 +280,7 @@
     <template x-if="results">
   <div class="flex flex-col gap-4">
     <div 
-      x-data="{ scale: 1 }"
+      x-data="{ scale: 0.8 }"
       x-init="
         const updateScale = () => {
           if (!$refs.wrapper) return;
@@ -1007,6 +1007,7 @@ function protocolApp() {
 </body>
 
 </html>
+
 
 
 
