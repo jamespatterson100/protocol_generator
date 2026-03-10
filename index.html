@@ -47,56 +47,44 @@
 
     /* PRINT ENGINE */
 @media print {
-  /* Set standard paper size and 0.5-inch margins (also hides browser URLs/Dates) */
-  @page { 
-    size: letter; 
-    margin: 0.5in; 
+  /* Hide the browser-added URL, Date, and Page numbers */
+  @page {
+    margin: 0.5cm; /* Small margin for clinical printers */
+    size: letter;
   }
-  
-  html, body { 
-    height: auto !important; 
-    overflow: visible !important; 
-    background: white !important; 
+
+  /* Completely hide everything except the print-area */
+  body * {
+    visibility: hidden !important;
   }
-  
-  /* Hide all UI elements that shouldn't be on the paper */
-  .no-print, nav, button, .selector-card, .script-application-footer, .no-print-section { 
-    display: none !important; 
+
+  #print-area, #print-area * {
+    visibility: visible !important;
   }
-  
-  /* * THE PRINT AREA 
-   * - display: flex allows the signature block to be pushed to the bottom.
-   * - height: calc(100vh - 1in) perfectly fills the 11-inch page minus the margins.
-   * - transform: none resets the mobile UI scaling so it prints natively.
-   */
-  #print-area { 
-    display: flex !important; 
-    flex-direction: column !important;
-    height: calc(100vh - 1in) !important;
-    min-height: 100% !important;
-    position: static !important; 
-    visibility: visible !important; 
-    width: 100% !important; 
-    border: none !important; 
-    box-shadow: none !important; 
-    padding: 0 !important; 
-    transform: none !important; 
+
+  /* Position the print-area at the absolute top-left of the page */
+  #print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 1cm !important; /* Internal padding for the sheet content */
+    transform: none !important; /* Disable the scaling we use for the screen preview */
+    box-shadow: none !important;
+    border: none !important;
   }
-  
-  /* Typography overrides */
-  h1 { font-size: 28pt !important; font-weight: 900 !important; color: black !important; }
-  h2 { font-size: 24pt !important; font-weight: 900 !important; color: black !important; }
-  .med-amount { font-size: 18pt !important; font-weight: 900 !important; color: #1e3a8a !important; } 
-  .wd-number { font-size: 38pt !important; font-weight: 900 !important; color: #dc2626 !important; } 
-  
-  /* Sizing for standard text (Removed color: black!important to preserve your colored UI accents) */
-  p, td, th, span { font-size: 10pt !important; }
-  
-  /* Force exact background colors (Withdrawal boxes, Table headers) */
-  * { 
-    -webkit-print-color-adjust: exact !important; 
-    print-color-adjust: exact !important; 
+
+  /* Force background colors (like the red withdrawal box) to print */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
+
+  /* Remove any rounded corners or shadows that might look fuzzy on ink */
+  .rounded-xl { border-radius: 0 !important; }
 }
   </style>
 </head>
@@ -1020,6 +1008,7 @@ function protocolApp() {
 </body>
 
 </html>
+
 
 
 
