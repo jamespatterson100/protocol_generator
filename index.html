@@ -258,8 +258,8 @@
     <select x-model="outputLang" @change="results = null" class="border-2 p-1.5 rounded-lg text-xs font-bold bg-white outline-none focus:border-blue-500 cursor-pointer">
       <option value="EN">English</option>
       <option value="ES">Español / EN</option>
-      <option value="FIL">Filipino / EN</option>
-      <option value="PA">ਪੰਜਾਬੀ (Punjabi) / EN</option>
+      <option value="PH">Filipino / EN</option>  
+      <option value="PB">ਪੰਜਾਬੀ (Punjabi) / EN</option> 
     </select>
   </div>
 </div>
@@ -731,14 +731,14 @@ function protocolApp() {
     farmManager: "Gerente de Granja / Cuidador",
     routes: { "IM": "IM (Intramuscular)", "SC": "SC (Subcutánea)", "IV": "IV (Intravenosa)", "PO": "PO (Oral)", "IMM": "IMM (Intramamaria)" }
   },
-  FIL: {
+  PH: {
     medication: "Gamot", volume: "Dami / Dosis", route: "Paraan", freq: "Dalas", duration: "Tagal",
     days: "Mga Araw", withdrawalHeader: "Kinakailangang Panahon ng Pag-withdraw", meat: "Karne", milk: "Gatas",
     clinicalSigns: "Pagkakakilanlan / Mga Sintomas", prescribingVet: "Nagreseta na Beterinaryo",
     farmManager: "Tagapamahala ng Bukid",
     routes: { "IM": "IM (Sa Kalamnan)", "SC": "SC (Sa Ilalim ng Balat)", "IV": "IV (Sa Ugat)", "PO": "PO (Sa Bibig)", "IMM": "IMM (Sa Suso)" }
   },
-  PA: {
+  PB: {
     medication: "ਦਵਾਈ", volume: "ਖੁਰਾਕ", route: "ਰੂਟ", freq: "ਬਾਰੰਬਾਰਤਾ", duration: "ਮਿਆਦ",
     days: "ਦਿਨ", withdrawalHeader: "ਲਾਜ਼ਮੀ ਵਾਪਸੀ ਦਾ ਸਮਾਂ", meat: "ਮੀਟ", milk: "ਦੁੱਧ",
     clinicalSigns: "ਪਛਾਣ / ਕਲੀਨਿਕਲ ਚਿੰਨ੍ਹ", prescribingVet: "ਤਜਵੀਜ਼ ਕਰਨ ਵਾਲਾ ਡਾਕਟਰ",
@@ -1073,6 +1073,7 @@ function protocolApp() {
 </body>
 
 </html>
+
 
 
 
