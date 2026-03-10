@@ -234,14 +234,33 @@
         <div><label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Protocol</label><select x-model="s" :disabled="!d" class="w-full border-2 p-3 rounded-xl font-bold bg-slate-50 focus:border-blue-500 outline-none disabled:opacity-50"><option value="">Select...</option><template x-for="sev in (filteredSeverities || [])"><option :value="sev" x-text="sev"></option></template></select></div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-xl border border-slate-200 mb-6">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-black text-slate-500 uppercase tracking-widest">Dose Mode</span>
-          <div class="flex bg-white p-1 rounded-lg border">
-            <button @click="doseType = 'animal'" :class="doseType === 'animal' ? 'bg-slate-900 text-white' : 'text-slate-400'" class="px-4 py-1 rounded-md text-[10px] font-bold uppercase transition">Animal</button>
-            <button @click="doseType = 'weight'" :class="doseType === 'weight' ? 'bg-slate-900 text-white' : 'text-slate-400'" class="px-4 py-1 rounded-md text-[10px] font-bold uppercase transition">Fixed</button>
-          </div>
-        </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 bg-slate-50 p-6 rounded-xl border border-slate-200 mb-6">
+  <div class="flex items-center justify-between">
+    <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Dose Mode</span>
+    <div class="flex bg-white p-1 rounded-lg border">
+      <button @click="doseType = 'animal'" :class="doseType === 'animal' ? 'bg-slate-900 text-white' : 'text-slate-400'" class="px-3 py-1 rounded-md text-[10px] font-bold uppercase transition">Animal</button>
+      <button @click="doseType = 'weight'" :class="doseType === 'weight' ? 'bg-slate-900 text-white' : 'text-slate-400'" class="px-3 py-1 rounded-md text-[10px] font-bold uppercase transition">Fixed</button>
+    </div>
+  </div>
+  
+  <div class="flex items-center gap-2">
+    <div class="flex-1" x-show="doseType === 'animal'" x-transition>
+      <input type="number" x-model.number="weight" placeholder="Weight" class="w-full border-2 p-1.5 rounded-lg text-sm font-bold bg-white outline-none focus:border-blue-500" inputmode="decimal">
+    </div>
+    <div class="flex bg-white p-1 rounded-lg border ml-auto" x-show="doseType === 'animal'">
+      <button @click="unitSystem = 'kgs'" :class="unitSystem === 'kgs' ? 'bg-blue-600 text-white' : 'text-slate-400'" class="px-2 py-1 rounded-md text-[10px] font-bold uppercase transition">KGS</button>
+      <button @click="unitSystem = 'lbs'" :class="unitSystem === 'lbs' ? 'bg-blue-600 text-white' : 'text-slate-400'" class="px-2 py-1 rounded-md text-[10px] font-bold uppercase transition">LBS</button>
+    </div>
+  </div>
+
+  <div class="flex items-center justify-between border-l-2 border-slate-200 pl-6">
+    <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Language</span>
+    <select x-model="outputLang" @change="results = null" class="border-2 p-1.5 rounded-lg text-xs font-bold bg-white outline-none focus:border-blue-500 cursor-pointer">
+      <option value="EN">English</option>
+      <option value="ES">Español / EN</option>
+      </select>
+  </div>
+</div>
         <div class="flex items-center gap-4">
           <div class="flex-1" x-show="doseType === 'animal'" x-transition>
             <input type="number" x-model.number="weight" placeholder="Animal Weight" class="w-full border-2 p-2 rounded-lg text-sm font-bold bg-white outline-none focus:border-blue-500" inputmode="decimal">
@@ -999,6 +1018,7 @@ function protocolApp() {
 </body>
 
 </html>
+
 
 
 
