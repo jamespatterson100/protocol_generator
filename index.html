@@ -38,8 +38,13 @@
       margin: 0 !important; 
     }
 
-    body {
+    /* 2. LOCKS the document to exactly 1 page and kills overflow */
+    html, body {
       margin: 0 !important;
+      padding: 0 !important;
+      width: 8.5in !important;
+      height: 11in !important;
+      overflow: hidden !important; /* <-- This is the magic bullet for the blank 2nd page */
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
     }
@@ -47,20 +52,25 @@
     body * { visibility: hidden; }
     #print-area, #print-area * { visibility: visible; }
 
-    /* 2. Forces the exact Letter size and Custom Margins */
+    /* 3. Forces the exact Letter size and Custom Margins */
     #print-area {
       position: absolute !important;
       left: 0 !important;
       top: 0 !important;
       width: 8.5in !important;
-      height: 11in !important; /* Forces the flexbox to span the entire page */
-      padding: 30px 30px 90px 30px !important; /* Your custom print margins */
+      height: 11in !important; 
+      padding: 30px 30px 90px 30px !important; 
       box-sizing: border-box !important;
-      transform: none !important; /* Removes the screen preview scale */
+      transform: none !important; 
       display: flex !important;
       flex-direction: column !important;
       box-shadow: none !important;
       border: none !important;
+      
+      /* Backup rules to prevent page breaks */
+      overflow: hidden !important;
+      page-break-after: avoid !important;
+      break-after: avoid !important;
     }
 
     .no-print { display: none !important; }
@@ -989,6 +999,7 @@ function protocolApp() {
 </body>
 
 </html>
+
 
 
 
