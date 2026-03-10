@@ -443,7 +443,7 @@
             <input type="text" x-model="adm.farm" @input="open = true" @click.away="open = false" placeholder="Search farm..." class="w-full border-2 border-slate-100 p-4 rounded-xl text-lg font-bold outline-none bg-slate-50 focus:bg-white focus:border-blue-500 transition">
             <div x-show="open && adm.farm.length > 0" class="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-2xl shadow-2xl max-h-60 overflow-y-auto">
               <template x-for="farm in farms.filter(f => f.toLowerCase().includes(adm.farm.toLowerCase()))">
-                <div @click="selectFarm(farm); open = false;" class="p-4 border-b border-slate-50 hover:bg-blue-50 cursor-pointer transition flex justify-between items-center">
+                <div @click="adm.farm = farm; selectFarm(farm); open = false;" class="p-4 border-b border-slate-50 hover:bg-blue-50 cursor-pointer transition flex justify-between items-center">
                   <span class="font-black text-slate-900" x-text="farm"></span>
                   <span class="text-[8px] bg-blue-100 text-blue-600 px-3 py-1 rounded-full font-black uppercase">Select</span>
                 </div>
@@ -1143,6 +1143,7 @@ function protocolApp() {
 </body>
 
 </html>
+
 
 
 
