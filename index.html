@@ -45,46 +45,42 @@
       }
     }
 
-    /* PRINT ENGINE */
+/* 2. Print-Specific Logic */
 @media print {
-  /* Hide the browser-added URL, Date, and Page numbers */
   @page {
-    margin: 0.5cm; /* Small margin for clinical printers */
     size: letter;
+    margin: 0; /* Removing margins tells the browser to drop the URL/Timestamp */
   }
 
-  /* Completely hide everything except the print-area */
-  body * {
-    visibility: hidden !important;
-  }
-
-  #print-area, #print-area * {
-    visibility: visible !important;
-  }
-
-  /* Position the print-area at the absolute top-left of the page */
-  #print-area {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 !important;
-    padding: 1cm !important; /* Internal padding for the sheet content */
-    transform: none !important; /* Disable the scaling we use for the screen preview */
-    box-shadow: none !important;
-    border: none !important;
-  }
-
-  /* Force background colors (like the red withdrawal box) to print */
-  * {
+  body {
+    margin: 0;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-    color-adjust: exact !important;
   }
 
-  /* Remove any rounded corners or shadows that might look fuzzy on ink */
-  .rounded-xl { border-radius: 0 !important; }
+  /* Hide everything except the protocol sheet */
+  .no-print, nav, header, footer, button {
+    display: none !important;
+  }
+
+  #print-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 8.5in !important; /* Force Letter Width */
+    height: 11in !important; /* Force Letter Height */
+    margin: 0 !important;
+    padding: 0.5in !important; /* Standard document margins */
+    transform: none !important; /* Remove preview scaling */
+    border: none !important;
+    box-shadow: none !important;
+  }
+}
+
+/* 3. Helper for the preview card in the app */
+.preview-container {
+  background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+  background-size: 20px 20px;
 }
   </style>
 </head>
@@ -283,22 +279,29 @@
   <div class="flex flex-col gap-4">
     
     <div 
-      x-data="{ scale: 1, docHeight: 1000 }"
-      x-init="
-        const updateScale = () => {
-          if (!$refs.wrapper || !$refs.paper) return;
-          // Calculate scale based on an 816px standard document width
-          scale = Math.min(1, $refs.wrapper.clientWidth / 816);
-          docHeight = $refs.paper.offsetHeight;
-        };
-        setTimeout(updateScale, 50);
-        window.addEventListener('resize', updateScale);
-        $watch('results', () => setTimeout(updateScale, 50));
-      "
-      x-ref="wrapper"
-      class="w-full overflow-hidden rounded-xl border border-slate-300 bg-slate-100 print:overflow-visible print:border-none print:bg-white"
-      :style="`height: ${scale * docHeight}px;`"
-    >
+  x-data="{ scale: 1, docHeight: 1056 }"
+  x-init="
+    const updateScale = () => {
+      if (!$refs.wrapper) return;
+      scale = Math.min(1, $refs.wrapper.clientWidth / 816);
+    };
+    setTimeout(updateScale, 100);
+    window.addEventListener('resize', updateScale);
+    $watch('results', () => setTimeout(updateScale, 100));
+  "
+  x-ref="wrapper"
+  class="w-full overflow-hidden rounded-xl border border-slate-300 bg-slate-200 preview-container print:overflow-visible print:border-none print:bg-white"
+  :style="`height: ${scale * 1056}px;`"
+>
+  <div 
+    x-ref="paper"
+    id="print-area" 
+    class="bg-white text-slate-900 flex flex-col shadow-2xl origin-top-left print:shadow-none"
+    style="width: 816px; min-height: 1056px; padding: 40px;" 
+    :style="`transform: scale(${scale});`"
+  >
+    </div>
+</div>
       
       <div 
         x-ref="paper"
@@ -1009,6 +1012,7 @@ function protocolApp() {
 </body>
 
 </html>
+
 
 
 
