@@ -880,6 +880,49 @@ function protocolApp() {
       this.s = ''; 
     },
 
+    loadProtocolIntoBuilder() {
+          if (!this.activeProtocol) return;
+          
+          this.isEditMode = true; // Flips the button from Green to Amber
+          
+          // 1. Populate the top dropdowns and inputs
+          this.adm.p.farm = this.activeProtocol.farm;
+          this.adm.p.group = this.activeProtocol.group;
+          this.adm.p.disease = this.activeProtocol.disease;
+          this.adm.p.severity = this.activeProtocol.severity;
+          
+          // 2. Populate the bilingual descriptions
+          this.adm.p.descEN = this.activeProtocol.desc_EN || '';
+          this.adm.p.descES = this.activeProtocol.desc_ES || '';
+          this.adm.p.descPH = this.activeProtocol.desc_PH || '';
+          this.adm.p.descPB = this.activeProtocol.desc_PB || '';
+          
+          // 3. Gather all the drugs associated with this specific protocol sequence
+          const matchedItems = this.allData.protocols.filter(x => 
+            x.farm === this.activeProtocol.farm && 
+            x.group === this.activeProtocol.group && 
+            x.disease === this.activeProtocol.disease && 
+            x.severity === this.activeProtocol.severity
+          );
+          
+          // 4. Load them into the builder's drug array
+          this.adm.p.drugs = matchedItems.map(item => ({
+            name: item.drug,
+            freq: item.freq,
+            dur: item.dur
+          }));
+          
+          // Smooth scroll down to the builder 
+          document.querySelector('.builder-anchor')?.scrollIntoView({ behavior: 'smooth' });
+        },
+
+        duplicateProtocolToBuilder() {
+          // A copy is just a load, but setting edit mode to false so it saves as a NEW record
+          this.loadProtocolIntoBuilder();
+          this.isEditMode = false;
+          this.adm.p.severity = this.adm.p.severity + '-COPY'; // Appends COPY to prevent accidental overwrites
+        },
+
     async triggerFarmDelete() {
           if (!this.adminSelectedFarm) return;
           
