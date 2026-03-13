@@ -923,12 +923,10 @@ function protocolApp() {
           this.adm.p.severity = this.adm.p.severity + '-COPY'; // Appends COPY to prevent accidental overwrites
         },
 
-    async triggerFarmDelete() {
-          if (!this.adminSelectedFarm) return;
+    async triggerFarmDelete(farmName) {
+          if (!farmName) return;
           
-          // STRICT WARNING
-          const isConfirmed = confirm(`CRITICAL WARNING:\n\nAre you absolutely sure you want to permanently delete "${this.adminSelectedFarm}"?\n\nThis will instantly erase ALL management groups and ALL protocols associated with this farm. This cannot be undone.`);
-          
+          const isConfirmed = confirm(`CRITICAL WARNING:\n\nAre you absolutely sure you want to permanently delete "${farmName}"?\n\nThis will instantly erase ALL management groups and ALL protocols associated with this farm. This cannot be undone.`);
           if (!isConfirmed) return;
 
           this.syncStatus = 'syncing';
@@ -939,29 +937,32 @@ function protocolApp() {
               body: JSON.stringify({
                 action: 'deleteFarm',
                 token: this.token,
-                payload: this.adminSelectedFarm // Sending the farm name
+                payload: farmName
               })
             });
             
             const result = await response.json();
             
             if (result.success) {
-              // Update the local data with the scrubbed dataset
               this.allData = result.data;
-              this.processData(); // Rebuilds the frontend arrays
+              this.processData(); 
               
-              // Clear selectors so we don't hold onto 'ghost' data
-              if (this.f === this.adminSelectedFarm) {
+              if (this.f === farmName) {
                 this.f = ''; this.g = ''; this.d = ''; this.s = ''; this.results = null;
               }
               
-              alert(`Success: ${this.adminSelectedFarm} and all of its associated data have been permanently deleted.`);
-              this.adminSelectedFarm = ''; // Reset the admin dropdown
+              if (this.adm.farm === farmName) {
+                this.adm.farm = '';
+                this.activeGroup = null;
+                this.activeProtocol = null;
+              }
+              
+              alert(`Success: ${farmName} has been permanently deleted.`);
             } else {
-              alert("Error deleting farm: " + result.error);
+              alert("Backend Error: " + result.error);
             }
           } catch (e) {
-            alert("Network error: Please ensure you have internet access. " + e.message);
+            alert("Network error: " + e.message);
           } finally {
             this.syncStatus = 'connected';
           }
